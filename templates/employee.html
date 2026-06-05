@@ -59,33 +59,20 @@
             </aside>
 
             <div class="space-y-6 bg-slate-100 p-5 text-slate-950 sm:p-7 lg:p-10">
-                <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                    <label for="responsable-selector" class="block text-lg font-black text-slate-950">Selecciona tu perfil operativo</label>
-                    <p class="mt-1 text-sm text-slate-600">El swipe se sincroniza con tus tareas, revisiones y evidencias asignadas.</p>
-                    <form method="get" class="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-                        <select id="responsable-selector" name="responsable" required class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-900 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500">
-                            <option value="" disabled {% if not selected_employee %}selected{% endif %}>Selecciona tu perfil...</option>
-                            {% for emp in employees %}
-                                <option value="{{ emp.name }}" {% if selected_employee == emp.name %}selected{% endif %}>{{ emp.name }} - {{ emp.role }}</option>
-                            {% endfor %}
-                        </select>
-                        <button type="submit" class="rounded-lg bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-slate-800">Cargar datos</button>
-                    </form>
-                </div>
-
                 <form method="post" enctype="multipart/form-data" class="space-y-6">
                     {% csrf_token %}
 
                 <div class="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
-                    <div>
-                        <label for="{{ form.inspector.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">
-                            {{ form.inspector.label }}
-                        </label>
+                    <div class="hidden">
                         {{ form.inspector }}
-                        {{ form.inspector.errors }}
                     </div>
-                    <div class="rounded-lg bg-white px-4 py-3 text-sm font-bold text-slate-600 shadow-sm">
-                        {{ commerce.name }}
+                    <div class="rounded-lg bg-white px-5 py-4 shadow-sm border border-emerald-100">
+                        <p class="text-xs font-bold uppercase tracking-wide text-emerald-700">Responsable de Inspección</p>
+                        <p class="mt-1 text-xl font-black text-slate-900">{{ selected_employee }}</p>
+                    </div>
+                    <div class="rounded-lg bg-white px-5 py-4 shadow-sm border border-slate-200">
+                        <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Comercio</p>
+                        <p class="mt-1 text-lg font-bold text-slate-700">{{ commerce.name }}</p>
                     </div>
                 </div>
 
@@ -147,31 +134,21 @@
                         <span class="rounded-full bg-emerald-100 px-3 py-2 text-emerald-800">✓ Cumplida →</span>
                     </div>
 
-                    <div class="relative mx-auto my-6 h-[29rem] max-w-lg" id="inspection-deck">
+                    <div class="relative mx-auto my-6 h-[22rem] max-w-lg" id="inspection-deck">
                         {% for field in checklist_fields %}
                             <article
-                                class="inspection-card absolute inset-0 flex touch-none select-none flex-col justify-between overflow-hidden rounded-[1.4rem] border border-slate-200 bg-white shadow-2xl transition-transform duration-200"
+                                class="inspection-card absolute inset-0 flex touch-none select-none flex-col items-center justify-center overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl transition-transform duration-200"
                                 data-field="{{ field.name }}"
                                 data-label="{{ field.label }}"
                             >
-                                <div class="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-emerald-500 via-cyan-500 to-rose-500"></div>
-                                <div class="pointer-events-none p-7">
-                                    <div class="flex items-center justify-between">
-                                        <p class="rounded-full bg-slate-100 px-3 py-1 text-xs font-black uppercase tracking-wide text-slate-500">Norma sanitaria</p>
-                                        <p class="text-sm font-black text-slate-400">EcoTrust</p>
+                                <div class="absolute inset-x-0 top-0 h-3 bg-gradient-to-r from-emerald-500 to-emerald-600"></div>
+                                <div class="pointer-events-none p-10 text-center">
+                                    <p class="text-sm font-black uppercase tracking-[0.2em] text-emerald-600">Validar Norma</p>
+                                    <h2 class="mt-8 text-4xl font-black leading-tight text-slate-950">{{ field.label }}</h2>
+                                    <div class="mt-12 flex items-center justify-center gap-8">
+                                        <div class="flex h-16 w-16 items-center justify-center rounded-full border-4 border-rose-100 bg-rose-50 text-2xl font-black text-rose-600 opacity-20">✕</div>
+                                        <div class="flex h-16 w-16 items-center justify-center rounded-full border-4 border-emerald-100 bg-emerald-50 text-2xl font-black text-emerald-600 opacity-20">✓</div>
                                     </div>
-                                    <div class="mt-8 flex items-center justify-between">
-                                        <div class="flex h-16 w-16 items-center justify-center rounded-full border-4 border-rose-200 bg-rose-50 text-3xl font-black text-rose-600">✕</div>
-                                        <div class="flex h-16 w-16 items-center justify-center rounded-full border-4 border-emerald-200 bg-emerald-50 text-3xl font-black text-emerald-600">✓</div>
-                                    </div>
-                                    <h2 class="mt-6 text-4xl font-black leading-tight text-slate-950">{{ field.label }}</h2>
-                                    <p class="mt-5 text-base leading-7 text-slate-600">
-                                        Decide con evidencia real de piso. La accion queda trazada para direccion y visible como emblema publico si se cumple.
-                                    </p>
-                                </div>
-                                <div class="pointer-events-none grid grid-cols-2 gap-3 p-5 text-center text-sm font-black">
-                                    <span class="rounded-xl bg-rose-600 px-4 py-4 text-white shadow-sm">✕ No cumplida</span>
-                                    <span class="rounded-xl bg-emerald-600 px-4 py-4 text-white shadow-sm">✓ Cumplida</span>
                                 </div>
                             </article>
                         {% endfor %}
@@ -187,33 +164,22 @@
                     </div>
                 </div>
 
-                <div class="grid gap-4 lg:grid-cols-[1fr_0.8fr]">
-                    <div class="rounded-lg bg-white p-4 shadow-sm">
-                        <h2 class="font-black text-slate-950">Emblemas de esta revision</h2>
-                        <div class="mt-4 grid gap-2 sm:grid-cols-2" id="inspection-summary">
-                            {% for field in checklist_fields %}
-                                <div class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
-                                    <span class="font-bold text-slate-700">{{ field.label }}</span>
-                                    <span class="status-chip shrink-0 rounded-full bg-slate-200 px-3 py-1 text-xs font-black text-slate-500" data-status-for="{{ field.name }}">Sin revisar</span>
-                                </div>
-                                <div class="hidden">{{ field }}</div>
-                                {{ field.errors }}
-                            {% endfor %}
-                        </div>
+                <div class="rounded-lg bg-white p-5 shadow-sm sm:p-6">
+                    <h2 class="font-black text-slate-950 mb-4">Emblemas de esta revision</h2>
+                    <div class="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" id="inspection-summary">
+                        {% for field in checklist_fields %}
+                            <div class="flex flex-col gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+                                <span class="font-bold text-slate-700">{{ field.label }}</span>
+                                <span class="status-chip w-fit rounded-full bg-slate-200 px-3 py-1 text-[10px] font-black uppercase text-slate-500" data-status-for="{{ field.name }}">Sin revisar</span>
+                            </div>
+                            <div class="hidden">{{ field }}</div>
+                            {{ field.errors }}
+                        {% endfor %}
                     </div>
+                </div>
 
-                    <div class="rounded-lg bg-white p-4 shadow-sm">
-                        <label for="{{ form.evidence.id_for_label }}" class="block font-black text-slate-950">
-                            {{ form.evidence.label }}
-                        </label>
-                        <p class="mt-2 text-sm leading-6 text-slate-600">
-                            Sube evidencia para respaldar la decision y desbloquear confianza directiva.
-                        </p>
-                        <div class="mt-4">
-                            {{ form.evidence }}
-                            {{ form.evidence.errors }}
-                        </div>
-                    </div>
+                <div class="hidden">
+                    {{ form.evidence }}
                 </div>
 
                 <button type="submit" class="sticky bottom-4 z-10 w-full rounded-xl bg-emerald-600 px-6 py-5 text-xl font-black text-white shadow-lg shadow-emerald-900/20 hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200">
@@ -260,8 +226,8 @@
         if (chip) {
             chip.textContent = isDone ? 'Emblema activo' : 'Accion requerida';
             chip.className = isDone
-                ? 'status-chip shrink-0 rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-800'
-                : 'status-chip shrink-0 rounded-full bg-rose-100 px-3 py-1 text-xs font-black text-rose-800';
+                ? 'status-chip w-fit rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-black uppercase text-emerald-800'
+                : 'status-chip w-fit rounded-full bg-rose-100 px-3 py-1 text-[10px] font-black uppercase text-rose-800';
         }
     }
 

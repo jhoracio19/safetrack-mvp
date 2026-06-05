@@ -96,28 +96,92 @@ def seed_demo_platform(commerce):
     )
 
     PestControlProvider.objects.get_or_create(
-        name='BioControl Certificado MX',
+        name='EcoPlagas Certificaciones S.A.',
         defaults={
-            'phone': '55 1000 2200',
-            'service_area': 'CDMX Centro y Norte',
+            'phone': '55 4123 5678',
+            'service_area': 'CDMX: Polanco, Condesa, Roma',
             'certified': True,
-            'certification_expiration': timezone.localdate() + timedelta(days=180),
+            'certification_expiration': timezone.localdate() + timedelta(days=210),
             'price_level': 'premium',
             'latitude': 19.432608,
             'longitude': -99.133209,
-            'notes': 'Proveedor certificado para calendario semestral requerido.',
+            'notes': 'Especialistas en la industria alimentaria con certificación ISO 22000. Entregan reporte para COFEPRIS inmediato.',
         },
     )
     PestControlProvider.objects.get_or_create(
-        name='Fumiga Express Local',
+        name='Fumigaciones Angelópolis',
         defaults={
-            'phone': '55 3200 1188',
-            'service_area': 'CDMX y area metropolitana',
+            'phone': '222 567 8900',
+            'service_area': 'Puebla: Angelópolis, Cholula, Centro',
+            'certified': True,
+            'certification_expiration': timezone.localdate() + timedelta(days=180),
+            'price_level': 'premium',
+            'latitude': 19.041439,
+            'longitude': -98.206273,
+            'notes': 'Líder en el estado de Puebla. Certificación estatal vigente para restaurantes y hoteles.',
+        },
+    )
+    PestControlProvider.objects.get_or_create(
+        name='Sanidad y Control Tlaxcala',
+        defaults={
+            'phone': '246 123 4567',
+            'service_area': 'Tlaxcala Centro, Apizaco, Huamantla',
+            'certified': True,
+            'certification_expiration': timezone.localdate() + timedelta(days=120),
+            'price_level': 'medio',
+            'latitude': 19.313387,
+            'longitude': -98.238419,
+            'notes': 'Proveedor local con amplia cobertura en parques industriales y zonas comerciales de Tlaxcala.',
+        },
+    )
+    PestControlProvider.objects.get_or_create(
+        name='Fumigaciones Sanitor Global',
+        defaults={
+            'phone': '55 8800 1122',
+            'service_area': 'Estado de México y CDMX Norte',
+            'certified': True,
+            'certification_expiration': timezone.localdate() + timedelta(days=95),
+            'price_level': 'medio',
+            'latitude': 19.531244,
+            'longitude': -99.192688,
+            'notes': 'Servicio técnico especializado en control de fauna nociva urbana. Licencia sanitaria vigente.',
+        },
+    )
+    PestControlProvider.objects.get_or_create(
+        name='EcoControl Cholula',
+        defaults={
+            'phone': '222 111 2233',
+            'service_area': 'Puebla y Tlaxcala (Zonas Colindantes)',
             'certified': False,
             'price_level': 'economico',
-            'latitude': 19.405000,
-            'longitude': -99.160000,
-            'notes': 'Opcion economica para fumigaciones adicionales no certificadas.',
+            'latitude': 19.062083,
+            'longitude': -98.303917,
+            'notes': 'Opción económica para mantenimiento preventivo. Especialistas en áreas abiertas.',
+        },
+    )
+    PestControlProvider.objects.get_or_create(
+        name='Control de Plagas Express',
+        defaults={
+            'phone': '55 3344 5566',
+            'service_area': 'Zona Metropolitana CDMX',
+            'certified': False,
+            'price_level': 'economico',
+            'latitude': 19.352467,
+            'longitude': -99.162544,
+            'notes': 'Atención inmediata 24/7 para servicios correctivos de bajo costo. No emite certificado para COFEPRIS.',
+        },
+    )
+    PestControlProvider.objects.get_or_create(
+        name='MasterPest Solutions',
+        defaults={
+            'phone': '55 5566 7788',
+            'service_area': 'Sur de la CDMX (Coyoacán, Tlalpan)',
+            'certified': True,
+            'certification_expiration': timezone.localdate() + timedelta(days=150),
+            'price_level': 'medio',
+            'latitude': 19.300676,
+            'longitude': -99.176455,
+            'notes': 'Uso de químicos biodegradables de baja toxicidad. Ideal para restaurantes boutique.',
         },
     )
 
