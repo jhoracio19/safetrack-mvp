@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="mx-auto max-w-4xl space-y-6">
+    <div class="grid overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm lg:grid-cols-2">
+        <div class="p-6 text-center sm:p-8">
+            <p class="text-sm font-semibold uppercase tracking-wide text-emerald-700">Transparencia sanitaria</p>
+            <h1 class="mt-2 text-3xl font-bold text-slate-950">{{ commerce.name }}</h1>
+            <p class="mt-2 text-slate-600">{{ commerce.address }}</p>
+
+            <div class="mx-auto mt-8 flex h-44 w-44 items-center justify-center rounded-full border-8 border-emerald-100 bg-emerald-50">
+                {% if sanitation_percentage is not None %}
+                    <div>
+                        <p class="text-5xl font-extrabold text-emerald-700">{{ sanitation_percentage|floatformat:0 }}%</p>
+                        <p class="mt-1 text-sm font-semibold text-emerald-800">cumplimiento</p>
+                    </div>
+                {% else %}
+                    <div>
+                        <p class="text-3xl font-extrabold text-slate-500">N/A</p>
+                        <p class="mt-1 text-sm font-semibold text-slate-500">sin inspeccion</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if latest_inspection %}
+                <p class="mt-5 text-sm text-slate-500">
+                    Ultima revision: {{ latest_inspection.created_at|date:"d/m/Y H:i" }}
+                </p>
+            {% endif %}
+        </div>
+
+        <div class="flex flex-col justify-center bg-slate-950 p-6 text-center text-white sm:p-8">
+            <p class="text-sm font-bold uppercase tracking-wide text-emerald-300">Confianza visible</p>
+            <div class="mx-auto mt-6 flex h-44 w-44 items-center justify-center rounded-full border-8 border-emerald-300 bg-white text-slate-950 shadow-lg">
+                <div>
+                    <p class="text-4xl font-black">ST</p>
+                    <p class="text-xs font-black uppercase tracking-wide">Verified</p>
+                </div>
+            </div>
+            <h2 class="mt-6 text-2xl font-bold">{{ badge.name }}</h2>
+            <p class="mt-3 text-sm leading-6 text-slate-300">{{ badge.message }}</p>
+            <p class="mt-5 rounded-lg border border-white/10 bg-white/10 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-emerald-200">
+                Futuro: validacion y alianza con COFEPRIS
+            </p>
+        </div>
+    </div>
+
+    <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-wide text-emerald-700">Emblemas por norma cumplida</p>
+                <h2 class="text-2xl font-bold text-slate-950">Lo que este comercio verifica</h2>
+            </div>
+            <p class="text-sm font-semibold text-slate-500">Generado por SafeTrack</p>
+        </div>
+        <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {% for rule in sanitary_badges %}
+                <div class="rounded-lg border p-4 text-center {% if rule.earned %}border-emerald-200 bg-emerald-50{% else %}border-slate-200 bg-slate-50 opacity-70{% endif %}">
+                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full {% if rule.earned %}bg-emerald-600 text-white{% else %}bg-slate-300 text-slate-600{% endif %}">
+                        <span class="text-2xl font-black">{% if rule.earned %}✓{% else %}—{% endif %}</span>
+                    </div>
+                    <p class="mt-3 text-sm font-black text-slate-950">{{ rule.title }}</p>
+                    <p class="mt-1 text-xs font-semibold {% if rule.earned %}text-emerald-700{% else %}text-slate-500{% endif %}">
+                        {% if rule.earned %}Verificado{% else %}Pendiente{% endif %}
+                    </p>
+                </div>
+            {% empty %}
+                <p class="col-span-full py-8 text-center text-slate-500">Aun no hay emblemas publicados.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <div class="grid gap-4 sm:grid-cols-3">
+        <div class="rounded-lg border border-slate-200 bg-white p-5 text-center shadow-sm">
+            <p class="text-sm font-semibold text-slate-500">Indice sanitario</p>
+            {% if sanitation_percentage is not None %}
+                <p class="mt-2 text-3xl font-bold text-emerald-700">{{ sanitation_percentage|floatformat:0 }}%</p>
+            {% else %}
+                <p class="mt-2 text-3xl font-bold text-slate-500">N/A</p>
+            {% endif %}
+        </div>
+        <div class="rounded-lg border border-slate-200 bg-white p-5 text-center shadow-sm">
+            <p class="text-sm font-semibold text-slate-500">Evidencia</p>
+            {% if latest_inspection and latest_inspection.evidence %}
+                <a href="{{ latest_inspection.evidence.url }}" class="mt-2 inline-block text-lg font-bold text-emerald-700 hover:text-emerald-800">Disponible</a>
+            {% else %}
+                <p class="mt-2 text-lg font-bold text-slate-500">Pendiente</p>
+            {% endif %}
+        </div>
+        <div class="rounded-lg border border-slate-200 bg-white p-5 text-center shadow-sm">
+            <p class="text-sm font-semibold text-slate-500">Normas sanitarias</p>
+            <p class="mt-2 text-lg font-bold text-slate-950">Monitoreadas</p>
+        </div>
+    </div>
+
+    <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <h2 class="text-xl font-bold text-slate-950">Comparte tu experiencia</h2>
+        <p class="mt-1 text-sm text-slate-600">Tu opinion ayuda a mantener mejores practicas sanitarias.</p>
+
+        {% if success %}
+            <div class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+                Gracias. Tu feedback fue registrado.
+            </div>
+        {% endif %}
+
+        <form method="post" class="mt-5 space-y-4">
+            {% csrf_token %}
+            <div>
+                <label for="{{ form.score.id_for_label }}" class="mb-2 block text-sm font-semibold text-slate-700">{{ form.score.label }}</label>
+                {{ form.score }}
+                {{ form.score.errors }}
+            </div>
+            <div>
+                <label for="{{ form.comment.id_for_label }}" class="mb-2 block text-sm font-semibold text-slate-700">{{ form.comment.label }}</label>
+                {{ form.comment }}
+                {{ form.comment.errors }}
+            </div>
+            <button type="submit" class="w-full rounded-lg bg-slate-900 px-5 py-3 text-base font-bold text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200">
+                Enviar feedback
+            </button>
+        </form>
+    </div>
+</section>
+{% endblock content %}

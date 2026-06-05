@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="space-y-6">
+    <div class="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
+        <div class="rounded-lg bg-slate-950 p-6 text-white shadow-xl sm:p-8">
+            <p class="text-sm font-black uppercase tracking-wide text-emerald-300">Red de fumigacion</p>
+            <h1 class="mt-3 text-4xl font-black">Proveedores certificados y economicos</h1>
+            <p class="mt-4 text-slate-300">
+                El jefe puede ubicar opciones certificadas para las 2 fumigaciones anuales y alternativas no certificadas para servicios adicionales de bajo costo.
+            </p>
+            <div class="mt-6 grid grid-cols-2 gap-3">
+                <div class="rounded-lg bg-white/10 p-4">
+                    <p class="text-3xl font-black">{{ certified_count }}</p>
+                    <p class="text-xs font-bold uppercase tracking-wide text-slate-300">certificados</p>
+                </div>
+                <div class="rounded-lg bg-white/10 p-4">
+                    <p class="text-3xl font-black">{{ uncertified_count }}</p>
+                    <p class="text-xs font-bold uppercase tracking-wide text-slate-300">no certificados</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="relative min-h-80 overflow-hidden rounded-lg border border-slate-200 bg-emerald-50 shadow-sm">
+            <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(15,23,42,.08)_1px,transparent_1px),linear-gradient(rgba(15,23,42,.08)_1px,transparent_1px)] bg-[size:32px_32px]"></div>
+            <div class="relative h-full p-5">
+                <p class="rounded-full bg-white px-4 py-2 text-sm font-black text-slate-700 shadow-sm">Mapa operativo demo</p>
+                {% for provider in providers %}
+                    <div class="absolute rounded-full border-4 border-white shadow-lg {% if provider.certified %}bg-emerald-600{% else %}bg-amber-500{% endif %}" style="left: {% widthratio forloop.counter 5 70 %}%; top: {% widthratio forloop.revcounter 5 65 %}%; width: 22px; height: 22px;"></div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="grid gap-4 lg:grid-cols-2">
+        {% for provider in providers %}
+            <article class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <h2 class="text-2xl font-black text-slate-950">{{ provider.name }}</h2>
+                        <p class="mt-1 text-slate-600">{{ provider.service_area }}</p>
+                    </div>
+                    <span class="rounded-full px-3 py-1 text-sm font-black {% if provider.certified %}bg-emerald-100 text-emerald-800{% else %}bg-amber-100 text-amber-800{% endif %}">
+                        {% if provider.certified %}Certificado{% else %}No certificado{% endif %}
+                    </span>
+                </div>
+                <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                    <div class="rounded-lg bg-slate-50 p-3">
+                        <p class="text-xs font-black uppercase text-slate-500">Telefono</p>
+                        <p class="mt-1 font-bold text-slate-950">{{ provider.phone }}</p>
+                    </div>
+                    <div class="rounded-lg bg-slate-50 p-3">
+                        <p class="text-xs font-black uppercase text-slate-500">Costo</p>
+                        <p class="mt-1 font-bold capitalize text-slate-950">{{ provider.price_level }}</p>
+                    </div>
+                    <div class="rounded-lg bg-slate-50 p-3">
+                        <p class="text-xs font-black uppercase text-slate-500">Vence</p>
+                        <p class="mt-1 font-bold text-slate-950">{{ provider.certification_expiration|default:"N/A" }}</p>
+                    </div>
+                </div>
+                <p class="mt-4 text-sm leading-6 text-slate-600">{{ provider.notes }}</p>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+{% endblock content %}

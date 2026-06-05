@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="mx-auto max-w-5xl">
+    <div class="overflow-hidden rounded-lg bg-slate-950 text-white shadow-xl">
+        <div class="grid gap-0 lg:grid-cols-[0.9fr_1.1fr]">
+            <aside class="flex flex-col justify-between border-b border-white/10 p-6 sm:p-8 lg:border-b-0 lg:border-r">
+                <div>
+                    <p class="text-sm font-bold uppercase tracking-wide text-emerald-300">Modo empleado</p>
+                    <h1 class="mt-3 text-4xl font-black leading-tight">Swipe sanitario</h1>
+                    <p class="mt-4 text-base leading-7 text-slate-300">
+                        Revisa cada norma como una tarjeta. Derecha con palomita si esta cumplida, izquierda con tache si requiere accion.
+                    </p>
+                </div>
+
+                <div class="mt-8 grid grid-cols-2 gap-3">
+                    <div class="rounded-lg border border-white/10 bg-white/10 p-4">
+                        <p class="text-3xl font-black" id="progress-count">0</p>
+                        <p class="text-xs font-bold uppercase tracking-wide text-slate-300">revisadas</p>
+                    </div>
+                    <div class="rounded-lg border border-white/10 bg-white/10 p-4">
+                        <p class="text-3xl font-black">5</p>
+                        <p class="text-xs font-bold uppercase tracking-wide text-slate-300">normas</p>
+                    </div>
+                </div>
+
+                {% if success %}
+                    <div class="mt-6 rounded-lg border border-emerald-300/30 bg-emerald-400/10 px-5 py-4 text-emerald-100">
+                        <p class="font-bold">Inspeccion registrada y notificada a direccion.</p>
+                    </div>
+                {% endif %}
+            </aside>
+
+            <form method="post" enctype="multipart/form-data" class="space-y-5 bg-slate-100 p-4 text-slate-950 sm:p-6 lg:p-8">
+                {% csrf_token %}
+
+                <div class="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
+                    <div>
+                        <label for="{{ form.inspector_name.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">
+                            {{ form.inspector_name.label }}
+                        </label>
+                        {{ form.inspector_name }}
+                        {{ form.inspector_name.errors }}
+                    </div>
+                    <div class="rounded-lg bg-white px-4 py-3 text-sm font-bold text-slate-600 shadow-sm">
+                        {{ commerce.name }}
+                    </div>
+                </div>
+
+                <div class="rounded-lg bg-white p-4 shadow-sm sm:p-5">
+                    <div class="mb-4 flex items-center justify-between gap-3 text-xs font-black uppercase tracking-wide">
+                        <span class="rounded-full bg-rose-100 px-3 py-2 text-rose-800">← ✕ No cumplida</span>
+                        <span class="rounded-full bg-emerald-100 px-3 py-2 text-emerald-800">✓ Cumplida →</span>
+                    </div>
+
+                    <div class="relative mx-auto h-[27rem] max-w-md" id="inspection-deck">
+                        {% for field in checklist_fields %}
+                            <article
+                                class="inspection-card absolute inset-0 flex touch-none select-none flex-col justify-between overflow-hidden rounded-[1.4rem] border border-slate-200 bg-white shadow-2xl transition-transform duration-200"
+                                data-field="{{ field.name }}"
+                                data-label="{{ field.label }}"
+                            >
+                                <div class="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-emerald-500 via-cyan-500 to-rose-500"></div>
+                                <div class="pointer-events-none p-7">
+                                    <div class="flex items-center justify-between">
+                                        <p class="rounded-full bg-slate-100 px-3 py-1 text-xs font-black uppercase tracking-wide text-slate-500">Norma sanitaria</p>
+                                        <p class="text-sm font-black text-slate-400">SafeTrack</p>
+                                    </div>
+                                    <div class="mt-8 flex items-center justify-between">
+                                        <div class="flex h-16 w-16 items-center justify-center rounded-full border-4 border-rose-200 bg-rose-50 text-3xl font-black text-rose-600">✕</div>
+                                        <div class="flex h-16 w-16 items-center justify-center rounded-full border-4 border-emerald-200 bg-emerald-50 text-3xl font-black text-emerald-600">✓</div>
+                                    </div>
+                                    <h2 class="mt-6 text-4xl font-black leading-tight text-slate-950">{{ field.label }}</h2>
+                                    <p class="mt-5 text-base leading-7 text-slate-600">
+                                        Decide con evidencia real de piso. La accion queda trazada para direccion y visible como emblema publico si se cumple.
+                                    </p>
+                                </div>
+                                <div class="pointer-events-none grid grid-cols-2 gap-3 p-5 text-center text-sm font-black">
+                                    <span class="rounded-xl bg-rose-600 px-4 py-4 text-white shadow-sm">✕ No cumplida</span>
+                                    <span class="rounded-xl bg-emerald-600 px-4 py-4 text-white shadow-sm">✓ Cumplida</span>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mt-5 grid grid-cols-2 gap-3">
+                        <button type="button" id="pending-button" class="rounded-xl bg-rose-600 px-4 py-4 text-base font-black text-white shadow-sm hover:bg-rose-700 focus:outline-none focus:ring-4 focus:ring-rose-200">
+                            ✕ No cumplida
+                        </button>
+                        <button type="button" id="done-button" class="rounded-xl bg-emerald-600 px-4 py-4 text-base font-black text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200">
+                            ✓ Cumplida
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid gap-4 lg:grid-cols-[1fr_0.8fr]">
+                    <div class="rounded-lg bg-white p-4 shadow-sm">
+                        <h2 class="font-black text-slate-950">Emblemas de esta revision</h2>
+                        <div class="mt-4 grid gap-2 sm:grid-cols-2" id="inspection-summary">
+                            {% for field in checklist_fields %}
+                                <div class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+                                    <span class="font-bold text-slate-700">{{ field.label }}</span>
+                                    <span class="status-chip shrink-0 rounded-full bg-slate-200 px-3 py-1 text-xs font-black text-slate-500" data-status-for="{{ field.name }}">Sin revisar</span>
+                                </div>
+                                <div class="hidden">{{ field }}</div>
+                                {{ field.errors }}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="rounded-lg bg-white p-4 shadow-sm">
+                        <label for="{{ form.evidence.id_for_label }}" class="block font-black text-slate-950">
+                            {{ form.evidence.label }}
+                        </label>
+                        <p class="mt-2 text-sm leading-6 text-slate-600">
+                            Sube evidencia para respaldar la decision y desbloquear confianza directiva.
+                        </p>
+                        <div class="mt-4">
+                            {{ form.evidence }}
+                            {{ form.evidence.errors }}
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full rounded-xl bg-slate-950 px-5 py-4 text-lg font-black text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-300">
+                    Finalizar y notificar direccion
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<script>
+    const cards = Array.from(document.querySelectorAll('.inspection-card'));
+    const progressCount = document.getElementById('progress-count');
+    const doneButton = document.getElementById('done-button');
+    const pendingButton = document.getElementById('pending-button');
+    let currentIndex = cards.length - 1;
+    let reviewedCount = 0;
+    let dragStartX = 0;
+    let dragOffsetX = 0;
+    let activeCard = null;
+
+    function layoutCards() {
+        cards.forEach((card, index) => {
+            const depth = currentIndex - index;
+            card.style.zIndex = index + 1;
+            card.style.opacity = index <= currentIndex ? '1' : '0';
+            card.style.transform = depth >= 0 ? `translateY(${depth * 8}px) scale(${1 - depth * 0.035})` : 'translateY(24px) scale(0.94)';
+        });
+
+        const finished = currentIndex < 0;
+        doneButton.disabled = finished;
+        pendingButton.disabled = finished;
+        doneButton.classList.toggle('opacity-50', finished);
+        pendingButton.classList.toggle('opacity-50', finished);
+    }
+
+    function setStatus(fieldName, isDone) {
+        const input = document.querySelector(`input[name="${fieldName}"]`);
+        const chip = document.querySelector(`[data-status-for="${fieldName}"]`);
+
+        if (input) input.checked = isDone;
+
+        if (chip) {
+            chip.textContent = isDone ? 'Emblema activo' : 'Accion requerida';
+            chip.className = isDone
+                ? 'status-chip shrink-0 rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-800'
+                : 'status-chip shrink-0 rounded-full bg-rose-100 px-3 py-1 text-xs font-black text-rose-800';
+        }
+    }
+
+    function decideCurrentCard(isDone) {
+        if (currentIndex < 0) return;
+
+        const card = cards[currentIndex];
+        setStatus(card.dataset.field, isDone);
+        card.style.opacity = '0';
+        card.style.transform = `translateX(${isDone ? '130%' : '-130%'}) rotate(${isDone ? '16deg' : '-16deg'})`;
+        currentIndex -= 1;
+        reviewedCount += 1;
+        progressCount.textContent = reviewedCount;
+        window.setTimeout(layoutCards, 180);
+    }
+
+    cards.forEach((card) => {
+        card.addEventListener('pointerdown', (event) => {
+            if (card !== cards[currentIndex]) return;
+            activeCard = card;
+            dragStartX = event.clientX;
+            dragOffsetX = 0;
+            card.setPointerCapture(event.pointerId);
+        });
+
+        card.addEventListener('pointermove', (event) => {
+            if (!activeCard || activeCard !== card) return;
+            dragOffsetX = event.clientX - dragStartX;
+            const isDone = dragOffsetX > 0;
+            card.style.boxShadow = isDone ? '0 30px 80px rgba(16, 185, 129, 0.35)' : '0 30px 80px rgba(225, 29, 72, 0.28)';
+            card.style.transform = `translateX(${dragOffsetX}px) rotate(${dragOffsetX / 16}deg)`;
+        });
+
+        card.addEventListener('pointerup', () => {
+            if (!activeCard || activeCard !== card) return;
+            const threshold = 90;
+            activeCard.style.boxShadow = '';
+            activeCard = null;
+
+            if (dragOffsetX > threshold) {
+                decideCurrentCard(true);
+            } else if (dragOffsetX < -threshold) {
+                decideCurrentCard(false);
+            } else {
+                layoutCards();
+            }
+        });
+    });
+
+    doneButton.addEventListener('click', () => decideCurrentCard(true));
+    pendingButton.addEventListener('click', () => decideCurrentCard(false));
+    layoutCards();
+</script>
+{% endblock content %}
