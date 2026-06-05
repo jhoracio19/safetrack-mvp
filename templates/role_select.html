@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="mx-auto max-w-5xl space-y-8">
+    <div class="rounded-lg bg-slate-950 p-6 text-white shadow-xl sm:p-8">
+        <a href="{% url 'landing' %}#precios" class="text-sm font-black text-emerald-300 hover:text-emerald-200">Volver a precios</a>
+        <p class="mt-5 text-sm font-black uppercase tracking-wide text-emerald-300">Plan seleccionado</p>
+        <h1 class="mt-2 text-4xl font-black">{{ plan.name }}</h1>
+        <p class="mt-3 max-w-3xl text-lg leading-8 text-slate-300">{{ plan.description }}</p>
+    </div>
+
+    <div class="text-center">
+        <p class="text-sm font-black uppercase tracking-wide text-emerald-700">Elige tu rol</p>
+        <h2 class="mt-2 text-4xl font-black text-slate-950">Que quieres mostrar en la demo?</h2>
+        <p class="mt-3 text-lg text-slate-600">Cada rol tiene su propio menu y solo ve las acciones que necesita.</p>
+    </div>
+
+    <div class="grid gap-5 md:grid-cols-3">
+        <a href="{% url 'admin_dashboard' plan.slug %}" class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm hover:border-slate-400 hover:shadow-md">
+            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-slate-950 text-3xl font-black text-white">1</div>
+            <h3 class="mt-5 text-2xl font-black text-slate-950">Soy jefe</h3>
+            <p class="mt-3 text-base leading-7 text-slate-600">Administra empleados, revisa evidencias, aprueba tareas, consulta fumigadores y gestiona cursos si es Premium.</p>
+        </a>
+
+        <a href="{% url 'employee_tasks' %}" class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm hover:border-emerald-400 hover:shadow-md">
+            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-600 text-3xl font-black text-white">2</div>
+            <h3 class="mt-5 text-2xl font-black text-slate-950">Soy empleado</h3>
+            <p class="mt-3 text-base leading-7 text-slate-600">Ve tareas, sube fotos, registra sanidad con botones grandes y toma cursos de capacitacion.</p>
+        </a>
+
+        <a href="{% url 'customer_view' %}" class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm hover:border-cyan-400 hover:shadow-md">
+            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-cyan-600 text-3xl font-black text-white">3</div>
+            <h3 class="mt-5 text-2xl font-black text-slate-950">Soy cliente</h3>
+            <p class="mt-3 text-base leading-7 text-slate-600">Consulta indice sanitario, emblemas de confianza, evidencia publica y deja una opinion.</p>
+        </a>
+    </div>
+</section>
+{% endblock content %}

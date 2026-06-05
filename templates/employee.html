@@ -1,25 +1,25 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<section class="mx-auto max-w-5xl">
+<section class="mx-auto max-w-6xl">
     <div class="overflow-hidden rounded-lg bg-slate-950 text-white shadow-xl">
-        <div class="grid gap-0 lg:grid-cols-[0.9fr_1.1fr]">
-            <aside class="flex flex-col justify-between border-b border-white/10 p-6 sm:p-8 lg:border-b-0 lg:border-r">
+        <div class="grid gap-0 lg:grid-cols-[0.7fr_1.5fr]">
+            <aside class="flex flex-col justify-between border-b border-white/10 p-5 sm:p-6 lg:border-b-0 lg:border-r">
                 <div>
                     <p class="text-sm font-bold uppercase tracking-wide text-emerald-300">Modo empleado</p>
-                    <h1 class="mt-3 text-4xl font-black leading-tight">Swipe sanitario</h1>
-                    <p class="mt-4 text-base leading-7 text-slate-300">
+                    <h1 class="mt-3 text-3xl font-black leading-tight">Swipe sanitario</h1>
+                    <p class="mt-4 text-sm leading-7 text-slate-300">
                         Revisa cada norma como una tarjeta. Derecha con palomita si esta cumplida, izquierda con tache si requiere accion.
                     </p>
                 </div>
 
                 <div class="mt-8 grid grid-cols-2 gap-3">
                     <div class="rounded-lg border border-white/10 bg-white/10 p-4">
-                        <p class="text-3xl font-black" id="progress-count">0</p>
+                        <p class="text-2xl font-black" id="progress-count">0</p>
                         <p class="text-xs font-bold uppercase tracking-wide text-slate-300">revisadas</p>
                     </div>
                     <div class="rounded-lg border border-white/10 bg-white/10 p-4">
-                        <p class="text-3xl font-black">5</p>
+                        <p class="text-2xl font-black">5</p>
                         <p class="text-xs font-bold uppercase tracking-wide text-slate-300">normas</p>
                     </div>
                 </div>
@@ -29,17 +29,64 @@
                         <p class="font-bold">Inspeccion registrada y notificada a direccion.</p>
                     </div>
                 {% endif %}
+
+                <div class="mt-6 rounded-lg border border-white/10 bg-white/10 p-4">
+                    <p class="text-sm font-black uppercase tracking-wide text-emerald-300">Perfil activo</p>
+                    {% if selected_employee %}
+                        <p class="mt-2 text-xl font-black">{{ selected_employee }}</p>
+                        <div class="mt-4 grid grid-cols-2 gap-2 text-sm">
+                            <div class="rounded-lg bg-white/10 p-3">
+                                <p class="text-2xl font-black">{{ employee_task_metrics.assigned }}</p>
+                                <p class="text-xs font-bold uppercase tracking-wide text-slate-300">asignadas</p>
+                            </div>
+                            <div class="rounded-lg bg-white/10 p-3">
+                                <p class="text-2xl font-black">{{ employee_task_metrics.pending }}</p>
+                                <p class="text-xs font-bold uppercase tracking-wide text-slate-300">pendientes</p>
+                            </div>
+                            <div class="rounded-lg bg-white/10 p-3">
+                                <p class="text-2xl font-black">{{ employee_task_metrics.in_review }}</p>
+                                <p class="text-xs font-bold uppercase tracking-wide text-slate-300">revision</p>
+                            </div>
+                            <div class="rounded-lg bg-white/10 p-3">
+                                <p class="text-2xl font-black">{{ employee_task_metrics.approved }}</p>
+                                <p class="text-xs font-bold uppercase tracking-wide text-slate-300">aprobadas</p>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p class="mt-2 text-sm leading-6 text-slate-300">Selecciona tu nombre para ver solo tus tareas y registrar tu revision.</p>
+                    {% endif %}
+                </div>
             </aside>
 
-            <form method="post" enctype="multipart/form-data" class="space-y-5 bg-slate-100 p-4 text-slate-950 sm:p-6 lg:p-8">
-                {% csrf_token %}
+            <div class="space-y-6 bg-slate-100 p-5 text-slate-950 sm:p-7 lg:p-10">
+                <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                    <label for="responsable-selector" class="block text-lg font-black text-slate-950">Selecciona tu perfil operativo</label>
+                    <p class="mt-1 text-sm text-slate-600">El swipe se sincroniza con tus tareas, revisiones y evidencias asignadas.</p>
+                    <form method="get" class="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                        <select id="responsable-selector" name="responsable" required class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-900 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <option value="" disabled {% if not selected_employee %}selected{% endif %}>Selecciona tu perfil...</option>
+                            {% for emp in employees %}
+                                <option value="{{ emp.name }}" {% if selected_employee == emp.name %}selected{% endif %}>{{ emp.name }} - {{ emp.role }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="rounded-lg bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-slate-800">Cargar datos</button>
+                    </form>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
 
                 <div class="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
                     <div>
                         <label for="{{ form.inspector_name.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">
                             {{ form.inspector_name.label }}
                         </label>
-                        {{ form.inspector_name }}
+                        <select name="inspector_name" id="{{ form.inspector_name.id_for_label }}" required class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-900 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <option value="" disabled {% if not selected_employee %}selected{% endif %}>Selecciona tu perfil...</option>
+                            {% for emp in employees %}
+                                <option value="{{ emp.name }}" {% if selected_employee == emp.name %}selected{% endif %}>{{ emp.name }} - {{ emp.role }}</option>
+                            {% endfor %}
+                        </select>
                         {{ form.inspector_name.errors }}
                     </div>
                     <div class="rounded-lg bg-white px-4 py-3 text-sm font-bold text-slate-600 shadow-sm">
@@ -47,13 +94,65 @@
                     </div>
                 </div>
 
-                <div class="rounded-lg bg-white p-4 shadow-sm sm:p-5">
+                {% if selected_employee %}
+                    <div class="grid gap-4 lg:grid-cols-2">
+                        <div class="rounded-lg bg-white p-5 shadow-sm">
+                            <div class="flex items-center justify-between gap-3">
+                                <h2 class="font-black text-slate-950">Tareas asignadas a {{ selected_employee }}</h2>
+                                <a href="{% url 'employee_tasks' %}?responsable={{ selected_employee|urlencode }}" class="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-black text-emerald-700 hover:bg-emerald-100">Ver tareas</a>
+                            </div>
+                            <div class="mt-4 space-y-3">
+                                {% for task in employee_tasks %}
+                                    <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div>
+                                                <p class="font-black text-slate-950">{{ task.title }}</p>
+                                                <p class="mt-1 text-sm text-slate-600">{{ task.instructions|truncatechars:90 }}</p>
+                                            </div>
+                                            <span class="shrink-0 rounded-full px-3 py-1 text-xs font-black {% if task.approved is True %}bg-emerald-100 text-emerald-800{% elif task.approved is False %}bg-rose-100 text-rose-800{% elif task.completed_at %}bg-blue-100 text-blue-800{% else %}bg-amber-100 text-amber-800{% endif %}">
+                                                {% if task.approved is True %}Aprobada{% elif task.approved is False %}Corregir{% elif task.completed_at %}Revision{% else %}Pendiente{% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <p class="rounded-lg bg-slate-50 p-4 text-sm font-medium text-slate-500">No tienes tareas asignadas por direccion.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="rounded-lg bg-white p-5 shadow-sm">
+                            <h2 class="font-black text-slate-950">Revisiones sanitarias de {{ selected_employee }}</h2>
+                            <div class="mt-4 space-y-3">
+                                {% for inspection in employee_inspections %}
+                                    <div class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                                        <div>
+                                            <p class="font-black text-slate-950">{{ inspection.get_score_percentage|floatformat:0 }}%</p>
+                                            <p class="text-sm text-slate-500">{{ inspection.created_at|date:"d/m/Y H:i" }}</p>
+                                        </div>
+                                        <span class="rounded-full px-3 py-1 text-xs font-black {% if inspection.is_compliant %}bg-emerald-100 text-emerald-800{% else %}bg-rose-100 text-rose-800{% endif %}">
+                                            {% if inspection.is_compliant %}Completa{% else %}Parcial{% endif %}
+                                        </span>
+                                    </div>
+                                {% empty %}
+                                    <p class="rounded-lg bg-slate-50 p-4 text-sm font-medium text-slate-500">Aun no hay revisiones registradas para este empleado.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="rounded-lg border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900 shadow-sm">
+                        <p class="font-black">Carga tu perfil antes de registrar el swipe sanitario.</p>
+                        <p class="mt-1 text-sm font-medium">Esto evita que las revisiones queden asignadas al responsable incorrecto.</p>
+                    </div>
+                {% endif %}
+
+                <div class="rounded-lg bg-white p-5 shadow-sm sm:p-6">
                     <div class="mb-4 flex items-center justify-between gap-3 text-xs font-black uppercase tracking-wide">
                         <span class="rounded-full bg-rose-100 px-3 py-2 text-rose-800">← ✕ No cumplida</span>
                         <span class="rounded-full bg-emerald-100 px-3 py-2 text-emerald-800">✓ Cumplida →</span>
                     </div>
 
-                    <div class="relative mx-auto h-[27rem] max-w-md" id="inspection-deck">
+                    <div class="relative mx-auto my-6 h-[29rem] max-w-lg" id="inspection-deck">
                         {% for field in checklist_fields %}
                             <article
                                 class="inspection-card absolute inset-0 flex touch-none select-none flex-col justify-between overflow-hidden rounded-[1.4rem] border border-slate-200 bg-white shadow-2xl transition-transform duration-200"
@@ -122,11 +221,12 @@
                     </div>
                 </div>
 
-                <button type="submit" class="w-full rounded-xl bg-slate-950 px-5 py-4 text-lg font-black text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-300">
+                <button type="submit" class="sticky bottom-4 z-10 w-full rounded-xl bg-emerald-600 px-6 py-5 text-xl font-black text-white shadow-lg shadow-emerald-900/20 hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200">
                     Finalizar y notificar direccion
                 </button>
             </form>
         </div>
+    </div>
     </div>
 </section>
 

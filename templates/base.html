@@ -7,12 +7,38 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900">
-    <nav class="border-b border-slate-200 bg-white">
-        <div class="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <a href="{% url 'landing' %}" class="text-xl font-bold tracking-tight text-slate-950">SafeTrack</a>
-            <div class="flex flex-wrap gap-2 text-sm font-medium">
-                <a href="{% url 'landing' %}#info" class="rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100">Información</a>
-                <a href="{% url 'landing' %}#precios" class="rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100">Planes</a>
+    <nav class="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex items-center justify-between gap-4">
+                <a href="{% url 'landing' %}" class="text-2xl font-black tracking-tight text-slate-950">SafeTrack</a>
+                {% if role == 'admin' %}
+                    <span class="rounded-full bg-slate-950 px-3 py-1 text-sm font-black text-white">Jefe</span>
+                {% elif role == 'employee' %}
+                    <span class="rounded-full bg-emerald-100 px-3 py-1 text-sm font-black text-emerald-800">Empleado</span>
+                {% elif role == 'customer' %}
+                    <span class="rounded-full bg-cyan-100 px-3 py-1 text-sm font-black text-cyan-800">Cliente</span>
+                {% else %}
+                    <span class="rounded-full bg-slate-100 px-3 py-1 text-sm font-black text-slate-600">Publico</span>
+                {% endif %}
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-base font-black sm:flex sm:flex-wrap">
+                {% if role == 'admin' %}
+                    {% block nav_links %}{% endblock nav_links %}
+                    <a href="{% url 'landing' %}#precios" class="rounded-lg bg-slate-950 px-4 py-3 text-center text-white hover:bg-slate-800">Salir</a>
+                {% elif role == 'employee' %}
+                    <a href="{% url 'employee_tasks' %}" class="rounded-lg px-4 py-3 text-center text-slate-700 hover:bg-slate-100">Mis tareas</a>
+                    <a href="{% url 'employee_view' %}" class="rounded-lg px-4 py-3 text-center text-slate-700 hover:bg-slate-100">Registrar</a>
+                    <a href="{% url 'employee_courses' %}" class="rounded-lg px-4 py-3 text-center text-slate-700 hover:bg-slate-100">Cursos</a>
+                    <a href="{% url 'landing' %}#precios" class="rounded-lg bg-slate-950 px-4 py-3 text-center text-white hover:bg-slate-800">Salir</a>
+                {% elif role == 'customer' %}
+                    <a href="{% url 'customer_view' %}" class="rounded-lg px-4 py-3 text-center text-slate-700 hover:bg-slate-100">Indice</a>
+                    <a href="{% url 'customer_view' %}#opinion" class="rounded-lg px-4 py-3 text-center text-slate-700 hover:bg-slate-100">Opinion</a>
+                    <a href="{% url 'landing' %}" class="rounded-lg bg-slate-950 px-4 py-3 text-center text-white hover:bg-slate-800">Salir</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="rounded-lg px-4 py-3 text-center text-slate-700 hover:bg-gray-100">Iniciar Sesión</a>
+                    <a href="{% url 'login' %}" class="rounded-lg bg-emerald-600 px-5 py-3 text-center text-white shadow-sm hover:bg-emerald-700">Empezar</a>
+                {% endif %}
             </div>
         </div>
     </nav>
@@ -21,6 +47,5 @@
         {% block content %}
         {% endblock content %}
     </main>
-
 </body>
 </html>

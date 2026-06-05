@@ -1,420 +1,541 @@
 {% extends 'base.html' %}
 
+{% block nav_links %}
+    <button type="button" data-tab-target="tab-resumen" class="dashboard-tab border-b-2 border-emerald-700 px-3 py-3 text-center text-sm font-black text-emerald-800 whitespace-nowrap">Resumen</button>
+    <button type="button" data-tab-target="tab-operacion" class="dashboard-tab border-b-2 border-transparent px-3 py-3 text-center text-sm font-black text-slate-600 hover:text-slate-950 whitespace-nowrap">Operación Diaria</button>
+    <button type="button" data-tab-target="tab-equipo" class="dashboard-tab border-b-2 border-transparent px-3 py-3 text-center text-sm font-black text-slate-600 hover:text-slate-950 whitespace-nowrap">Equipo</button>
+    <button type="button" data-tab-target="tab-academia" class="dashboard-tab border-b-2 border-transparent px-3 py-3 text-center text-sm font-black text-slate-600 hover:text-slate-950 whitespace-nowrap">Academia (Premium)</button>
+    <a href="/jefe/fumigadores/" class="px-3 py-3 text-center text-sm font-black text-slate-600 hover:text-slate-950 whitespace-nowrap">Fumigadores</a>
+{% endblock nav_links %}
+
 {% block content %}
 <section class="space-y-6">
-    <div class="rounded-lg bg-slate-950 p-6 text-white shadow-xl">
-        <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-                <p class="text-sm font-black uppercase tracking-wide text-emerald-300">Prototipo activo</p>
-                <h1 class="mt-2 text-4xl font-black">{{ plan.name }}</h1>
-                <p class="mt-2 max-w-3xl text-slate-300">{{ plan.description }}</p>
-            </div>
-            <div class="flex flex-col gap-3 sm:flex-row">
-                <a href="{% url 'landing' %}" class="rounded-lg bg-white px-5 py-3 text-center font-black text-slate-950 hover:bg-slate-100">Salir a precios</a>
-                {% if plan.slug == 'premium' %}
-                    <a href="{% url 'admin_dashboard' 'basico' %}" class="rounded-lg border border-white/20 px-5 py-3 text-center font-black text-white hover:bg-white/10">Ver Basico</a>
-                {% else %}
-                    <a href="{% url 'admin_dashboard' 'premium' %}" class="rounded-lg bg-emerald-500 px-5 py-3 text-center font-black text-white hover:bg-emerald-600">Ver Premium</a>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
     <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <p class="text-sm font-semibold uppercase tracking-wide text-emerald-700">Panel administrativo</p>
             <h1 class="text-3xl font-bold text-slate-950">{{ commerce.name }}</h1>
             <p class="mt-1 text-slate-600">{{ commerce.address }}</p>
         </div>
-        <div class="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm">
-            <span class="font-medium text-slate-500">Certificado:</span>
-            <span class="font-semibold text-slate-900">
-                {% if commerce.certificate_expiration %}
-                    {{ commerce.certificate_expiration }}
-                {% else %}
-                    Sin fecha
-                {% endif %}
-            </span>
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <a href="{% url 'export_admin_report' %}" class="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-5 py-3 text-sm font-black text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200">
+                Exportar datos
+            </a>
+            <div class="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm">
+                <span class="font-medium text-slate-500">Certificado:</span>
+                <span class="font-semibold text-slate-900">
+                    {% if commerce.certificate_expiration %}{{ commerce.certificate_expiration }}{% else %}Sin fecha{% endif %}
+                </span>
+            </div>
         </div>
     </div>
-
-    {% if certificate_expiring %}
-        <div class="rounded-lg border border-red-200 bg-red-50 px-5 py-4 text-red-800 shadow-sm">
-            <p class="font-semibold">Certificado sanitario por vencer</p>
-            <p class="mt-1 text-sm">Renueva o agenda una revision antes del {{ commerce.certificate_expiration }}.</p>
-        </div>
-    {% endif %}
 
     {% if feedback_saved %}
         <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-800 shadow-sm">
             <p class="font-semibold">Feedback directivo guardado.</p>
         </div>
     {% endif %}
-
     {% if employees_saved %}
         <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-800 shadow-sm">
             <p class="font-semibold">Empleado actualizado.</p>
         </div>
     {% endif %}
-
+    {% if task_saved %}
+        <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-800 shadow-sm">
+            <p class="font-semibold">Tarea asignada correctamente.</p>
+        </div>
+    {% endif %}
     {% if course_saved %}
         <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-800 shadow-sm">
             <p class="font-semibold">Curso premium creado.</p>
         </div>
     {% endif %}
-
     {% if locked_feature %}
         <div class="rounded-lg border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800 shadow-sm">
             <p class="font-semibold">Esta funcion pertenece al Plan Premium.</p>
         </div>
     {% endif %}
 
-    <div class="grid gap-4 md:grid-cols-4">
-        <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm font-medium text-slate-500">Inspecciones</p>
-            <p class="mt-2 text-3xl font-bold text-slate-950">{{ inspections|length }}</p>
-        </div>
-        <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm font-medium text-slate-500">Feedback recibido</p>
-            <p class="mt-2 text-3xl font-bold text-slate-950">{{ feedbacks|length }}</p>
-        </div>
-        <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm font-medium text-slate-500">Estado operativo</p>
-            <p class="mt-2 text-3xl font-bold text-emerald-700">Activo</p>
-        </div>
-        <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm font-medium text-slate-500">Indice actual</p>
-            <p class="mt-2 text-3xl font-bold text-slate-950">
-                {% if latest_percentage is not None %}{{ latest_percentage|floatformat:0 }}%{% else %}N/A{% endif %}
-            </p>
-        </div>
-    </div>
-
-    <section class="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-        <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="flex items-center justify-between gap-3">
-                <div>
-                    <p class="text-sm font-black uppercase tracking-wide text-emerald-700">Equipo</p>
-                    <h2 class="text-2xl font-black text-slate-950">Empleados</h2>
-                </div>
-                <span class="rounded-full bg-slate-100 px-3 py-1 text-sm font-black text-slate-600">{{ employees|length }} / {{ plan.max_employees }}</span>
+    <div id="tab-resumen" class="dashboard-panel space-y-6">
+        {% if certificate_expiring %}
+            <div class="rounded-lg border border-red-200 bg-red-50 px-5 py-4 text-red-800 shadow-sm">
+                <p class="font-semibold">Certificado sanitario por vencer</p>
+                <p class="mt-1 text-sm">Renueva o agenda una revision antes del {{ commerce.certificate_expiration }}.</p>
             </div>
-            <div class="mt-4 divide-y divide-slate-100">
-                {% for employee in employees %}
-                    <div class="flex items-center justify-between gap-3 py-3">
-                        <div>
-                            <p class="font-black text-slate-950">{{ employee.name }}</p>
-                            <p class="text-sm text-slate-500">{{ employee.role }} · {{ employee.area }}</p>
-                        </div>
-                        <form method="post">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="delete_employee">
-                            <input type="hidden" name="employee_id" value="{{ employee.id }}">
-                            <button type="submit" class="rounded-lg bg-rose-50 px-3 py-2 text-sm font-black text-rose-700 hover:bg-rose-100">Quitar</button>
-                        </form>
-                    </div>
-                {% empty %}
-                    <p class="py-6 text-slate-500">Sin empleados registrados.</p>
-                {% endfor %}
-            </div>
-        </div>
+        {% endif %}
 
-        <form method="post" class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="add_employee">
-            <p class="text-sm font-black uppercase tracking-wide text-emerald-700">Alta rapida</p>
-            <h2 class="text-2xl font-black text-slate-950">Agregar empleado</h2>
-            <div class="mt-4 grid gap-4 sm:grid-cols-3">
-                <div>{{ employee_form.name.label_tag }}<div class="mt-2">{{ employee_form.name }}</div></div>
-                <div>{{ employee_form.role.label_tag }}<div class="mt-2">{{ employee_form.role }}</div></div>
-                <div>{{ employee_form.area.label_tag }}<div class="mt-2">{{ employee_form.area }}</div></div>
-            </div>
-            <button type="submit" class="mt-5 w-full rounded-lg bg-slate-950 px-4 py-3 font-black text-white hover:bg-slate-800">Agregar al equipo</button>
-        </form>
-    </section>
-
-    <section class="grid gap-6 lg:grid-cols-3">
-        <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm font-black uppercase tracking-wide text-emerald-700">Capacitacion</p>
-            <h2 class="mt-2 text-2xl font-black text-slate-950">Cultura sanitaria medible</h2>
-            {% if plan.has_courses %}
-                <p class="mt-3 text-sm leading-6 text-slate-600">Cursos con cuestionario para validar que el empleado sabe ejecutar procesos criticos.</p>
-                <a href="{% url 'employee_courses' %}" class="mt-5 inline-flex rounded-lg bg-slate-950 px-4 py-3 text-sm font-black text-white hover:bg-slate-800">Ver academia</a>
-            {% else %}
-                <p class="mt-3 text-sm leading-6 text-slate-500">No incluido en Plan Basico. Cambia a Premium para crear cursos y evaluar conocimientos.</p>
-                <a href="{% url 'admin_dashboard' 'premium' %}" class="mt-5 inline-flex rounded-lg bg-emerald-600 px-4 py-3 text-sm font-black text-white hover:bg-emerald-700">Activar Premium</a>
-            {% endif %}
-        </div>
-        <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm font-black uppercase tracking-wide text-emerald-700">Tareas</p>
-            <h2 class="mt-2 text-2xl font-black text-slate-950">Evidencias por empleado</h2>
-            <p class="mt-3 text-sm leading-6 text-slate-600">Cada actividad se cierra con foto y feedback del jefe para aprobar o corregir.</p>
-            <a href="{% url 'employee_tasks' %}" class="mt-5 inline-flex rounded-lg bg-slate-950 px-4 py-3 text-sm font-black text-white hover:bg-slate-800">Ver tareas</a>
-        </div>
-        <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm font-black uppercase tracking-wide text-emerald-700">Fumigacion</p>
-            <h2 class="mt-2 text-2xl font-black text-slate-950">{{ certified_providers }} certificados</h2>
-            <p class="mt-3 text-sm leading-6 text-slate-600">Directorio para cumplir dos certificaciones al ano y comparar opciones adicionales.</p>
-            <a href="{% url 'pest_providers' %}" class="mt-5 inline-flex rounded-lg bg-slate-950 px-4 py-3 text-sm font-black text-white hover:bg-slate-800">Ver red</a>
-        </div>
-    </section>
-
-    {% if plan.has_courses %}
-        <section class="grid gap-6 lg:grid-cols-[1fr_1fr]">
-            <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-sm font-black uppercase tracking-wide text-emerald-700">Premium</p>
-                <h2 class="text-2xl font-black text-slate-950">Crear curso interno</h2>
-                <form method="post" class="mt-5 space-y-4">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="add_course">
-                    <div>{{ course_form.title.label_tag }}<div class="mt-2">{{ course_form.title }}</div></div>
-                    <div>{{ course_form.description.label_tag }}<div class="mt-2">{{ course_form.description }}</div></div>
-                    <div class="grid gap-4 sm:grid-cols-2">
-                        <div>{{ course_form.lesson_title.label_tag }}<div class="mt-2">{{ course_form.lesson_title }}</div></div>
-                        <div>{{ course_form.correct_option.label_tag }}<div class="mt-2">{{ course_form.correct_option }}</div></div>
-                    </div>
-                    <div>{{ course_form.lesson_content.label_tag }}<div class="mt-2">{{ course_form.lesson_content }}</div></div>
-                    <div>{{ course_form.question.label_tag }}<div class="mt-2">{{ course_form.question }}</div></div>
-                    <div class="grid gap-4 sm:grid-cols-3">
-                        <div>{{ course_form.option_a.label_tag }}<div class="mt-2">{{ course_form.option_a }}</div></div>
-                        <div>{{ course_form.option_b.label_tag }}<div class="mt-2">{{ course_form.option_b }}</div></div>
-                        <div>{{ course_form.option_c.label_tag }}<div class="mt-2">{{ course_form.option_c }}</div></div>
-                    </div>
-                    <button type="submit" class="w-full rounded-lg bg-emerald-600 px-4 py-3 font-black text-white hover:bg-emerald-700">Publicar curso</button>
-                </form>
-            </div>
-
-            <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                <h2 class="text-2xl font-black text-slate-950">Cursos disponibles</h2>
-                <div class="mt-4 grid gap-3">
-                    {% for course in courses %}
-                        <div class="rounded-lg bg-slate-50 p-4">
-                            <p class="font-black text-slate-950">{{ course.title }}</p>
-                            <p class="mt-1 text-sm text-slate-600">{{ course.description|truncatechars:110 }}</p>
-                        </div>
-                    {% empty %}
-                        <p class="text-slate-500">Sin cursos creados.</p>
-                    {% endfor %}
-                </div>
-            </div>
-        </section>
-    {% else %}
-        <section class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-            <p class="text-sm font-black uppercase tracking-wide text-slate-500">Cursos deshabilitados</p>
-            <h2 class="mt-2 text-2xl font-black text-slate-950">Plan Basico sin academia</h2>
-            <p class="mt-3 text-slate-600">Este prototipo muestra tareas, evidencias, empleados, feedback y proveedores. La creacion de cursos y cuestionarios se reserva para Premium.</p>
-        </section>
-    {% endif %}
-
-    <section class="grid gap-6 lg:grid-cols-3">
-        <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
-            <p class="text-sm font-semibold uppercase tracking-wide text-slate-500">Control directivo</p>
-            <h2 class="mt-2 text-2xl font-bold text-slate-950">Cumplimiento sanitario verificable</h2>
-            <p class="mt-3 text-slate-600">
-                Cada inspeccion queda ligada a un responsable, un indice sanitario y una evidencia cargada por el empleado.
-                Las alertas por correo se emiten al registrar una inspeccion para que direccion pueda dar seguimiento.
-            </p>
-            <div class="mt-5 grid gap-3 sm:grid-cols-3">
-                <div class="rounded-lg bg-slate-50 p-4">
-                    <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Ultima tarea</p>
-                    <p class="mt-2 font-semibold text-slate-950">
-                        {% if latest_inspection %}{{ latest_inspection.created_at|date:"d/m/Y H:i" }}{% else %}Sin registro{% endif %}
-                    </p>
-                </div>
-                <div class="rounded-lg bg-slate-50 p-4">
-                    <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Resultado</p>
-                    <p class="mt-2 font-semibold {% if latest_inspection and latest_inspection.is_compliant %}text-emerald-700{% else %}text-rose-700{% endif %}">
-                        {% if latest_inspection %}
-                            {% if latest_inspection.is_compliant %}Correcto{% else %}Requiere accion{% endif %}
-                        {% else %}
-                            Pendiente
-                        {% endif %}
-                    </p>
-                </div>
-                <div class="rounded-lg bg-slate-50 p-4">
-                    <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Correo directivo</p>
-                    <p class="mt-2 truncate font-semibold text-slate-950">{{ commerce.director_email }}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="rounded-lg border border-slate-200 bg-slate-950 p-6 text-center text-white shadow-sm">
-            <p class="text-sm font-bold uppercase tracking-wide text-emerald-300">Emblema publico</p>
-            <div class="mx-auto mt-5 flex h-36 w-36 items-center justify-center rounded-full border-8 border-emerald-300 bg-white text-slate-950 shadow-sm">
-                <div>
-                    <p class="text-3xl font-black">ST</p>
-                    <p class="text-xs font-bold uppercase tracking-wide">Verified</p>
-                </div>
-            </div>
-            <h3 class="mt-5 text-xl font-bold">{{ badge.name }}</h3>
-            <p class="mt-2 text-sm text-slate-300">{{ badge.message }}</p>
-        </div>
-    </section>
-
-    <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <p class="text-sm font-semibold uppercase tracking-wide text-slate-500">Emblemas por norma</p>
-                <h2 class="text-xl font-bold text-slate-950">Ultima inspeccion</h2>
+                <h2 class="text-xl font-black text-slate-950">Estado real de actividades</h2>
+                <p class="mt-1 text-sm font-medium text-slate-600">Sincronizado con las tareas asignadas, evidencias enviadas y aprobaciones del jefe.</p>
             </div>
-            <a href="{% url 'customer_view' %}" class="rounded-lg bg-slate-950 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800">Vista publica</a>
+            <span class="inline-flex rounded-full bg-slate-100 px-4 py-2 text-sm font-black text-slate-700">
+                Total actividades: {{ total_actividades }}
+            </span>
         </div>
-        <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            {% for rule in sanitary_badges %}
-                <div class="rounded-lg border {% if rule.earned %}border-emerald-200 bg-emerald-50{% else %}border-rose-200 bg-rose-50{% endif %} p-4 text-center">
-                    <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full {% if rule.earned %}bg-emerald-600 text-white{% else %}bg-rose-600 text-white{% endif %}">
-                        <span class="text-xl font-black">{% if rule.earned %}✓{% else %}!{% endif %}</span>
-                    </div>
-                    <p class="mt-3 text-sm font-black text-slate-950">{{ rule.title }}</p>
-                    <p class="mt-1 text-xs font-semibold {% if rule.earned %}text-emerald-700{% else %}text-rose-700{% endif %}">{{ rule.label }}</p>
-                </div>
-            {% empty %}
-                <p class="col-span-full py-6 text-center text-slate-500">Aun no hay inspeccion para generar emblemas.</p>
-            {% endfor %}
-        </div>
-    </section>
 
-    <section class="rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div class="border-b border-slate-200 px-5 py-4">
-            <h2 class="text-lg font-black text-slate-950">Tareas con evidencia y feedback</h2>
+        <div class="grid gap-4 md:grid-cols-3">
+            <div class="rounded-lg border border-amber-200 bg-amber-50 p-5 shadow-sm">
+                <p class="text-sm font-black uppercase tracking-wide text-amber-700">Pendientes</p>
+                <p class="mt-2 text-4xl font-black text-amber-900">{{ total_pendientes }}</p>
+                <p class="mt-1 text-sm font-medium text-amber-800">Sin evidencia del empleado</p>
+                <p class="mt-4 text-xs font-black uppercase tracking-wide text-amber-700">Estado: asignada</p>
+            </div>
+            <div class="rounded-lg border border-blue-200 bg-blue-50 p-5 shadow-sm">
+                <p class="text-sm font-black uppercase tracking-wide text-blue-700">En revision</p>
+                <p class="mt-2 text-4xl font-black text-blue-900">{{ total_en_revision }}</p>
+                <p class="mt-1 text-sm font-medium text-blue-800">Completadas, esperando aprobacion</p>
+                <p class="mt-4 text-xs font-black uppercase tracking-wide text-blue-700">Estado: evidencia enviada</p>
+            </div>
+            <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
+                <p class="text-sm font-black uppercase tracking-wide text-emerald-700">Aprobadas</p>
+                <p class="mt-2 text-4xl font-black text-emerald-900">{{ total_aprobadas }}</p>
+                <p class="mt-1 text-sm font-medium text-emerald-800">Validadas por direccion</p>
+                <p class="mt-4 text-xs font-black uppercase tracking-wide text-emerald-700">Estado: cumple</p>
+            </div>
         </div>
-        <div class="divide-y divide-slate-100">
-            {% for task in tasks %}
-                <article class="p-5">
-                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                        <div>
-                            <p class="text-sm font-black uppercase tracking-wide text-slate-500">{{ task.assigned_to }}</p>
-                            <h3 class="mt-1 text-xl font-black text-slate-950">{{ task.title }}</h3>
-                            <p class="mt-2 text-sm text-slate-600">{{ task.instructions }}</p>
-                        </div>
-                        <span class="rounded-full px-3 py-1 text-sm font-black {% if task.approved is True %}bg-emerald-100 text-emerald-800{% elif task.approved is False %}bg-rose-100 text-rose-800{% elif task.completed_at %}bg-amber-100 text-amber-800{% else %}bg-slate-100 text-slate-600{% endif %}">
-                            {% if task.approved is True %}Cumple{% elif task.approved is False %}No cumple{% elif task.completed_at %}Pendiente revision{% else %}Sin evidencia{% endif %}
-                        </span>
-                    </div>
-                    <div class="mt-4 grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
-                        <div class="rounded-lg bg-slate-50 p-4">
-                            <p class="text-sm font-black text-slate-500">Evidencia del empleado</p>
-                            {% if task.evidence %}
-                                <a href="{{ task.evidence.url }}" class="mt-2 inline-flex font-black text-emerald-700 hover:text-emerald-800">Ver foto</a>
-                            {% else %}
-                                <p class="mt-2 text-slate-500">Sin foto cargada</p>
-                            {% endif %}
-                            {% if task.employee_notes %}
-                                <p class="mt-3 text-sm text-slate-600">{{ task.employee_notes }}</p>
-                            {% endif %}
-                        </div>
-                        <form method="post" class="rounded-lg bg-slate-50 p-4">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="task_feedback">
-                            <input type="hidden" name="task_id" value="{{ task.id }}">
-                            <label for="task-feedback-{{ task.id }}" class="block text-sm font-black text-slate-700">Feedback del jefe</label>
-                            <textarea id="task-feedback-{{ task.id }}" name="manager_feedback" rows="3" class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200" placeholder="Ej. Cumple, pero repetir foto con termometro visible.">{{ task.manager_feedback }}</textarea>
-                            <div class="mt-3 grid grid-cols-2 gap-2">
-                                <button type="submit" name="approved" value="false" class="rounded-lg bg-rose-600 px-4 py-2 text-sm font-black text-white hover:bg-rose-700">No cumple</button>
-                                <button type="submit" name="approved" value="true" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-black text-white hover:bg-emerald-700">Cumple</button>
-                            </div>
-                        </form>
-                    </div>
-                </article>
-            {% empty %}
-                <p class="p-8 text-center text-slate-500">No hay tareas creadas.</p>
-            {% endfor %}
-        </div>
-    </section>
 
-    <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 class="text-lg font-black text-slate-950">Resultados de capacitacion</h2>
-        {% if plan.has_courses %}
-            <div class="mt-4 grid gap-3 md:grid-cols-2">
-                {% for attempt in course_attempts %}
+        <section class="grid gap-3 md:grid-cols-4">
+            <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-3xl font-black text-slate-950">1</p>
+                <p class="mt-2 text-lg font-black text-slate-950">Alta empleados</p>
+                <p class="mt-1 text-sm text-slate-600">Agrega o quita personal.</p>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-3xl font-black text-slate-950">2</p>
+                <p class="mt-2 text-lg font-black text-slate-950">Revisa tareas</p>
+                <p class="mt-1 text-sm text-slate-600">Aprueba evidencias.</p>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-3xl font-black text-slate-950">3</p>
+                <p class="mt-2 text-lg font-black text-slate-950">Capacita</p>
+                <p class="mt-1 text-sm text-slate-600">{% if plan.has_courses %}Crea cursos.{% else %}Disponible en Premium.{% endif %}</p>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-3xl font-black text-slate-950">4</p>
+                <p class="mt-2 text-lg font-black text-slate-950">Cumple normas</p>
+                <p class="mt-1 text-sm text-slate-600">Consulta fumigadores.</p>
+            </div>
+        </section>
+
+        <section class="grid gap-6 lg:grid-cols-3">
+            <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
+                <p class="text-sm font-semibold uppercase tracking-wide text-slate-500">Control directivo</p>
+                <h2 class="mt-2 text-2xl font-bold text-slate-950">Cumplimiento sanitario verificable</h2>
+                <p class="mt-3 text-slate-600">
+                    Cada inspeccion queda ligada a un responsable, un indice sanitario y una evidencia cargada por el empleado.
+                    Las alertas por correo se emiten al registrar una inspeccion para que direccion pueda dar seguimiento.
+                </p>
+                <div class="mt-5 grid gap-3 sm:grid-cols-3">
                     <div class="rounded-lg bg-slate-50 p-4">
-                        <div class="flex items-center justify-between gap-3">
-                            <p class="font-black text-slate-950">{{ attempt.employee_name }}</p>
-                            <span class="rounded-full px-3 py-1 text-sm font-black {% if attempt.passed %}bg-emerald-100 text-emerald-800{% else %}bg-rose-100 text-rose-800{% endif %}">{{ attempt.score }}%</span>
+                        <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Ultima tarea</p>
+                        <p class="mt-2 font-semibold text-slate-950">
+                            {% if latest_inspection %}{{ latest_inspection.created_at|date:"d/m/Y H:i" }}{% else %}Sin registro{% endif %}
+                        </p>
+                    </div>
+                    <div class="rounded-lg bg-slate-50 p-4">
+                        <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Resultado</p>
+                        <p class="mt-2 font-semibold {% if latest_inspection and latest_inspection.is_compliant %}text-emerald-700{% else %}text-rose-700{% endif %}">
+                            {% if latest_inspection %}{% if latest_inspection.is_compliant %}Correcto{% else %}Requiere accion{% endif %}{% else %}Pendiente{% endif %}
+                        </p>
+                    </div>
+                    <div class="rounded-lg bg-slate-50 p-4">
+                        <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Correo directivo</p>
+                        <p class="mt-2 truncate font-semibold text-slate-950">{{ commerce.director_email }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rounded-lg border border-slate-200 bg-slate-950 p-6 text-center text-white shadow-sm">
+                <p class="text-sm font-bold uppercase tracking-wide text-emerald-300">Emblema publico</p>
+                <div class="mx-auto mt-5 flex h-36 w-36 items-center justify-center rounded-full border-8 border-emerald-300 bg-white text-slate-950 shadow-sm">
+                    <div>
+                        <p class="text-3xl font-black">ST</p>
+                        <p class="text-xs font-bold uppercase tracking-wide">Verified</p>
+                    </div>
+                </div>
+                <h3 class="mt-5 text-xl font-bold">{{ badge.name }}</h3>
+                <p class="mt-2 text-sm text-slate-300">{{ badge.message }}</p>
+            </div>
+        </section>
+
+        <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm font-semibold uppercase tracking-wide text-slate-500">Emblemas por norma</p>
+                    <h2 class="text-xl font-bold text-slate-950">Ultima inspeccion</h2>
+                </div>
+                <a href="{% url 'customer_view' %}" class="rounded-lg bg-slate-950 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800">Vista publica</a>
+            </div>
+            <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                {% for rule in sanitary_badges %}
+                    <div class="rounded-lg border {% if rule.earned %}border-emerald-200 bg-emerald-50{% else %}border-rose-200 bg-rose-50{% endif %} p-4 text-center">
+                        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full {% if rule.earned %}bg-emerald-600 text-white{% else %}bg-rose-600 text-white{% endif %}">
+                            <span class="text-xl font-black">{% if rule.earned %}✓{% else %}!{% endif %}</span>
                         </div>
-                        <p class="mt-1 text-sm text-slate-600">{{ attempt.course.title }}</p>
+                        <p class="mt-3 text-sm font-black text-slate-950">{{ rule.title }}</p>
+                        <p class="mt-1 text-xs font-semibold {% if rule.earned %}text-emerald-700{% else %}text-rose-700{% endif %}">{{ rule.label }}</p>
                     </div>
                 {% empty %}
-                    <p class="text-slate-500">Aun no hay empleados evaluados.</p>
+                    <p class="col-span-full py-6 text-center text-slate-500">Aun no hay inspeccion para generar emblemas.</p>
                 {% endfor %}
             </div>
-        {% else %}
-            <p class="mt-3 text-slate-500">No disponible en Plan Basico.</p>
-        {% endif %}
-    </section>
+        </section>
+    </div>
 
-    <div class="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
+    <div id="tab-operacion" class="dashboard-panel hidden space-y-6">
+        <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <p class="text-sm font-black uppercase tracking-wide text-emerald-700">Asignacion rapida</p>
+                    <h2 class="text-2xl font-black text-slate-950">Crear tarea sanitaria</h2>
+                    <p class="mt-1 text-sm text-slate-600">Asigna una actividad concreta para que el empleado suba evidencia desde su panel.</p>
+                </div>
+            </div>
+            <form method="post" class="mt-5 grid gap-4 lg:grid-cols-[1fr_1.2fr_0.8fr_auto] lg:items-end">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_task">
+                <div>
+                    <label for="task-title" class="block text-sm font-black text-slate-700">Titulo de la tarea</label>
+                    <input id="task-title" name="title" type="text" required class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200" placeholder="Ej. Revisar refrigerador 2">
+                </div>
+                <div>
+                    <label for="task-instructions" class="block text-sm font-black text-slate-700">Instrucciones</label>
+                    <input id="task-instructions" name="instructions" type="text" required class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200" placeholder="Indica que evidencia debe subir">
+                </div>
+                <div>
+                    <label for="task-assigned-to" class="block text-sm font-black text-slate-700">Empleado</label>
+                    <select id="task-assigned-to" name="assigned_to" required class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200">
+                        <option value="" disabled selected>Selecciona empleado</option>
+                        {% for employee in employees %}
+                            {% if employee.is_active %}
+                                <option value="{{ employee.name }}">{{ employee.name }} - {{ employee.role }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="rounded-lg bg-emerald-600 px-5 py-3 text-sm font-black text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200">Asignar Tarea</button>
+            </form>
+        </section>
+
         <section class="rounded-lg border border-slate-200 bg-white shadow-sm">
             <div class="border-b border-slate-200 px-5 py-4">
-                <h2 class="text-lg font-semibold text-slate-950">Inspecciones con feedback directivo</h2>
+                <h2 class="text-lg font-black text-slate-950">Tareas con evidencia y feedback</h2>
             </div>
             <div class="divide-y divide-slate-100">
-                {% for inspection in inspections %}
+                {% for task in tasks %}
                     <article class="p-5">
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div>
-                                <p class="text-sm font-bold text-slate-500">{{ inspection.created_at|date:"d/m/Y H:i" }}</p>
-                                <h3 class="mt-1 text-lg font-black text-slate-950">{{ inspection.inspector_name }}</h3>
-                                <div class="mt-3 flex flex-wrap gap-2">
-                                    <span class="rounded-full bg-emerald-50 px-3 py-1 text-sm font-black text-emerald-700">{{ inspection.get_score_percentage|floatformat:0 }}%</span>
-                                    {% if inspection.evidence %}
-                                        <a href="{{ inspection.evidence.url }}" class="rounded-full bg-slate-100 px-3 py-1 text-sm font-black text-slate-700 hover:bg-slate-200">Evidencia</a>
-                                    {% else %}
-                                        <span class="rounded-full bg-rose-50 px-3 py-1 text-sm font-black text-rose-700">Sin evidencia</span>
-                                    {% endif %}
-                                </div>
+                                <p class="text-sm font-black uppercase tracking-wide text-slate-500">{{ task.assigned_to }}</p>
+                                <h3 class="mt-1 text-xl font-black text-slate-950">{{ task.title }}</h3>
+                                <p class="mt-2 text-sm text-slate-600">{{ task.instructions }}</p>
                             </div>
-                            <p class="rounded-lg px-4 py-2 text-sm font-black {% if inspection.is_compliant %}bg-emerald-100 text-emerald-800{% else %}bg-rose-100 text-rose-800{% endif %}">
-                                {% if inspection.is_compliant %}Correcta{% else %}Revisar{% endif %}
-                            </p>
+                            <span class="rounded-full px-3 py-1 text-sm font-black {% if task.approved is True %}bg-emerald-100 text-emerald-800{% elif task.approved is False %}bg-rose-100 text-rose-800{% elif task.completed_at %}bg-amber-100 text-amber-800{% else %}bg-slate-100 text-slate-600{% endif %}">
+                                {% if task.approved is True %}Cumple{% elif task.approved is False %}No cumple{% elif task.completed_at %}Pendiente revision{% else %}Sin evidencia{% endif %}
+                            </span>
                         </div>
-
-                        <div class="mt-4 grid gap-2 sm:grid-cols-5">
-                            {% for rule in inspection.sanitary_badges %}
-                                <div class="rounded-lg px-3 py-3 text-center {% if rule.earned %}bg-emerald-50 text-emerald-800{% else %}bg-rose-50 text-rose-800{% endif %}">
-                                    <p class="text-lg font-black">{% if rule.earned %}✓{% else %}!{% endif %}</p>
-                                    <p class="mt-1 text-[11px] font-black uppercase leading-4">{{ rule.title }}</p>
-                                </div>
-                            {% endfor %}
-                        </div>
-
-                        <form method="post" class="mt-4 rounded-lg bg-slate-50 p-4">
-                            {% csrf_token %}
-                            <input type="hidden" name="inspection_id" value="{{ inspection.id }}">
-                            <label for="feedback-{{ inspection.id }}" class="block text-sm font-black text-slate-700">Feedback del directivo</label>
-                            <textarea id="feedback-{{ inspection.id }}" name="director_feedback" rows="3" class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200" placeholder="Ej. Reforzar temperatura en refrigerador 2 y repetir evidencia al cierre.">{{ inspection.director_feedback }}</textarea>
-                            <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                <p class="text-xs font-semibold text-slate-500">
-                                    {% if inspection.director_feedback_at %}Actualizado: {{ inspection.director_feedback_at|date:"d/m/Y H:i" }}{% else %}Sin feedback directivo{% endif %}
-                                </p>
-                                <button type="submit" class="rounded-lg bg-slate-950 px-4 py-2 text-sm font-black text-white hover:bg-slate-800">Guardar feedback</button>
+                        <div class="mt-4 grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
+                            <div class="rounded-lg bg-slate-50 p-4">
+                                <p class="text-sm font-black text-slate-500">Evidencia del empleado</p>
+                                {% if task.evidence %}
+                                    <a href="{{ task.evidence.url }}" class="mt-2 inline-flex font-black text-emerald-700 hover:text-emerald-800">Ver evidencia principal</a>
+                                {% else %}
+                                    <p class="mt-2 text-slate-500">Sin foto cargada</p>
+                                {% endif %}
+                                {% if task.evidence_photos.all %}
+                                    <div class="mt-4 grid grid-cols-2 gap-3">
+                                        {% for photo in task.evidence_photos.all %}
+                                            <a href="{{ photo.image.url }}" class="block overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+                                                <img src="{{ photo.image.url }}" alt="Evidencia de {{ task.title }}" class="h-24 w-full object-cover">
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if task.employee_notes %}
+                                    <p class="mt-3 text-sm text-slate-600">{{ task.employee_notes }}</p>
+                                {% endif %}
                             </div>
-                        </form>
+                            <form method="post" class="rounded-lg bg-slate-50 p-4">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="task_feedback">
+                                <input type="hidden" name="task_id" value="{{ task.id }}">
+                                <label for="task-feedback-{{ task.id }}" class="block text-sm font-black text-slate-700">Feedback del jefe</label>
+                                <textarea id="task-feedback-{{ task.id }}" name="manager_feedback" rows="3" class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200" placeholder="Ej. Cumple, pero repetir foto con termometro visible.">{{ task.manager_feedback }}</textarea>
+                                <div class="mt-3 grid grid-cols-2 gap-2">
+                                    <button type="submit" name="approved" value="false" class="rounded-lg bg-rose-600 px-4 py-2 text-sm font-black text-white hover:bg-rose-700">No cumple</button>
+                                    <button type="submit" name="approved" value="true" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-black text-white hover:bg-emerald-700">Cumple</button>
+                                </div>
+                            </form>
+                        </div>
                     </article>
                 {% empty %}
-                    <p class="px-5 py-8 text-center text-slate-500">Aun no hay inspecciones.</p>
+                    <p class="p-8 text-center text-slate-500">No hay tareas creadas.</p>
                 {% endfor %}
             </div>
         </section>
 
-        <section class="rounded-lg border border-slate-200 bg-white shadow-sm">
-            <div class="border-b border-slate-200 px-5 py-4">
-                <h2 class="text-lg font-semibold text-slate-950">Feedback de clientes</h2>
+        <div class="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
+            <section class="rounded-lg border border-slate-200 bg-white shadow-sm">
+                <div class="border-b border-slate-200 px-5 py-4">
+                    <h2 class="text-lg font-semibold text-slate-950">Inspecciones con feedback directivo</h2>
+                </div>
+                <div class="divide-y divide-slate-100">
+                    {% for inspection in inspections %}
+                        <article class="p-5">
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                <div>
+                                    <p class="text-sm font-bold text-slate-500">{{ inspection.created_at|date:"d/m/Y H:i" }}</p>
+                                    <h3 class="mt-1 text-lg font-black text-slate-950">{{ inspection.inspector_name }}</h3>
+                                    <div class="mt-3 flex flex-wrap gap-2">
+                                        <span class="rounded-full bg-emerald-50 px-3 py-1 text-sm font-black text-emerald-700">{{ inspection.get_score_percentage|floatformat:0 }}%</span>
+                                        {% if inspection.evidence %}
+                                            <a href="{{ inspection.evidence.url }}" class="rounded-full bg-slate-100 px-3 py-1 text-sm font-black text-slate-700 hover:bg-slate-200">Evidencia</a>
+                                        {% else %}
+                                            <span class="rounded-full bg-rose-50 px-3 py-1 text-sm font-black text-rose-700">Sin evidencia</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <p class="rounded-lg px-4 py-2 text-sm font-black {% if inspection.is_compliant %}bg-emerald-100 text-emerald-800{% else %}bg-rose-100 text-rose-800{% endif %}">
+                                    {% if inspection.is_compliant %}Correcta{% else %}Revisar{% endif %}
+                                </p>
+                            </div>
+
+                            <div class="mt-4 grid gap-2 sm:grid-cols-5">
+                                {% for rule in inspection.sanitary_badges %}
+                                    <div class="rounded-lg px-3 py-3 text-center {% if rule.earned %}bg-emerald-50 text-emerald-800{% else %}bg-rose-50 text-rose-800{% endif %}">
+                                        <p class="text-lg font-black">{% if rule.earned %}✓{% else %}!{% endif %}</p>
+                                        <p class="mt-1 text-[11px] font-black uppercase leading-4">{{ rule.title }}</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <form method="post" class="mt-4 rounded-lg bg-slate-50 p-4">
+                                {% csrf_token %}
+                                <input type="hidden" name="inspection_id" value="{{ inspection.id }}">
+                                <label for="feedback-{{ inspection.id }}" class="block text-sm font-black text-slate-700">Feedback del directivo</label>
+                                <textarea id="feedback-{{ inspection.id }}" name="director_feedback" rows="3" class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200" placeholder="Ej. Reforzar temperatura en refrigerador 2 y repetir evidencia al cierre.">{{ inspection.director_feedback }}</textarea>
+                                <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                    <p class="text-xs font-semibold text-slate-500">
+                                        {% if inspection.director_feedback_at %}Actualizado: {{ inspection.director_feedback_at|date:"d/m/Y H:i" }}{% else %}Sin feedback directivo{% endif %}
+                                    </p>
+                                    <button type="submit" class="rounded-lg bg-slate-950 px-4 py-2 text-sm font-black text-white hover:bg-slate-800">Guardar feedback</button>
+                                </div>
+                            </form>
+                        </article>
+                    {% empty %}
+                        <p class="px-5 py-8 text-center text-slate-500">Aun no hay inspecciones.</p>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="rounded-lg border border-slate-200 bg-white shadow-sm">
+                <div class="border-b border-slate-200 px-5 py-4">
+                    <h2 class="text-lg font-semibold text-slate-950">Feedback de clientes</h2>
+                </div>
+                <div class="divide-y divide-slate-100">
+                    {% for feedback in feedbacks %}
+                        <article class="px-5 py-4">
+                            <div class="flex items-center justify-between gap-4">
+                                <p class="font-semibold text-slate-950">{{ feedback.score }}/5 estrellas</p>
+                                <p class="text-xs text-slate-500">{{ feedback.created_at|date:"d/m/Y H:i" }}</p>
+                            </div>
+                            <p class="mt-2 text-sm text-slate-600">{{ feedback.comment|default:"Sin comentario." }}</p>
+                        </article>
+                    {% empty %}
+                        <p class="px-5 py-8 text-center text-slate-500">Aun no hay feedback.</p>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div id="tab-equipo" class="dashboard-panel hidden space-y-6">
+        <section class="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+            <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <p class="text-sm font-black uppercase tracking-wide text-emerald-700">Equipo</p>
+                        <h2 class="text-2xl font-black text-slate-950">Empleados</h2>
+                    </div>
+                    <span class="rounded-full bg-slate-100 px-3 py-1 text-sm font-black text-slate-600">{{ employees|length }} / {{ plan.max_employees }}</span>
+                </div>
+                <div class="mt-4 space-y-4">
+                    {% for employee in employees %}
+                        <article class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                            <form method="post" class="space-y-3">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="update_employee">
+                                <input type="hidden" name="employee_id" value="{{ employee.id }}">
+                                <div class="grid gap-3 sm:grid-cols-3">
+                                    <div>
+                                        <label for="employee-name-{{ employee.id }}" class="block text-xs font-black uppercase tracking-wide text-slate-500">Nombre</label>
+                                        <input id="employee-name-{{ employee.id }}" name="name" value="{{ employee.name }}" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200">
+                                    </div>
+                                    <div>
+                                        <label for="employee-role-{{ employee.id }}" class="block text-xs font-black uppercase tracking-wide text-slate-500">Puesto</label>
+                                        <input id="employee-role-{{ employee.id }}" name="role" value="{{ employee.role }}" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200">
+                                    </div>
+                                    <div>
+                                        <label for="employee-area-{{ employee.id }}" class="block text-xs font-black uppercase tracking-wide text-slate-500">Area</label>
+                                        <input id="employee-area-{{ employee.id }}" name="area" value="{{ employee.area }}" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200">
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                    <label class="inline-flex items-center gap-2 text-sm font-black text-slate-700">
+                                        <input type="checkbox" name="is_active" class="h-5 w-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" {% if employee.is_active %}checked{% endif %}>
+                                        Activo
+                                    </label>
+                                    <div class="flex gap-2">
+                                        <button type="submit" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-black text-white hover:bg-emerald-700">Guardar</button>
+                                    </div>
+                                </div>
+                            </form>
+                            <form method="post" class="mt-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_employee">
+                                <input type="hidden" name="employee_id" value="{{ employee.id }}">
+                                <button type="submit" class="w-full rounded-lg bg-rose-50 px-3 py-2 text-sm font-black text-rose-700 hover:bg-rose-100">Quitar empleado</button>
+                            </form>
+                        </article>
+                    {% empty %}
+                        <p class="py-6 text-slate-500">Sin empleados registrados.</p>
+                    {% endfor %}
+                </div>
             </div>
-            <div class="divide-y divide-slate-100">
-                {% for feedback in feedbacks %}
-                    <article class="px-5 py-4">
-                        <div class="flex items-center justify-between gap-4">
-                            <p class="font-semibold text-slate-950">{{ feedback.score }}/5 estrellas</p>
-                            <p class="text-xs text-slate-500">{{ feedback.created_at|date:"d/m/Y H:i" }}</p>
+
+            <form method="post" class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_employee">
+                <p class="text-sm font-black uppercase tracking-wide text-emerald-700">Alta rapida</p>
+                <h2 class="text-2xl font-black text-slate-950">Agregar empleado</h2>
+                <div class="mt-4 grid gap-4 sm:grid-cols-3">
+                    <div>{{ employee_form.name.label_tag }}<div class="mt-2">{{ employee_form.name }}</div></div>
+                    <div>{{ employee_form.role.label_tag }}<div class="mt-2">{{ employee_form.role }}</div></div>
+                    <div>{{ employee_form.area.label_tag }}<div class="mt-2">{{ employee_form.area }}</div></div>
+                </div>
+                <button type="submit" class="mt-5 w-full rounded-lg bg-slate-950 px-4 py-3 font-black text-white hover:bg-slate-800">Agregar al equipo</button>
+            </form>
+        </section>
+    </div>
+
+    <div id="tab-academia" class="dashboard-panel hidden space-y-6">
+        {% if plan.has_courses %}
+            <section class="grid gap-6 lg:grid-cols-[1fr_1fr]">
+                <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                    <p class="text-sm font-black uppercase tracking-wide text-emerald-700">Premium</p>
+                    <h2 class="text-2xl font-black text-slate-950">Crear curso interno</h2>
+                    <form method="post" class="mt-5 space-y-4">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="add_course">
+                        <div>{{ course_form.title.label_tag }}<div class="mt-2">{{ course_form.title }}</div></div>
+                        <div>{{ course_form.description.label_tag }}<div class="mt-2">{{ course_form.description }}</div></div>
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div>{{ course_form.lesson_title.label_tag }}<div class="mt-2">{{ course_form.lesson_title }}</div></div>
+                            <div>{{ course_form.correct_option.label_tag }}<div class="mt-2">{{ course_form.correct_option }}</div></div>
                         </div>
-                        <p class="mt-2 text-sm text-slate-600">{{ feedback.comment|default:"Sin comentario." }}</p>
-                    </article>
-                {% empty %}
-                    <p class="px-5 py-8 text-center text-slate-500">Aun no hay feedback.</p>
-                {% endfor %}
+                        <div>{{ course_form.lesson_content.label_tag }}<div class="mt-2">{{ course_form.lesson_content }}</div></div>
+                        <div>{{ course_form.question.label_tag }}<div class="mt-2">{{ course_form.question }}</div></div>
+                        <div class="grid gap-4 sm:grid-cols-3">
+                            <div>{{ course_form.option_a.label_tag }}<div class="mt-2">{{ course_form.option_a }}</div></div>
+                            <div>{{ course_form.option_b.label_tag }}<div class="mt-2">{{ course_form.option_b }}</div></div>
+                            <div>{{ course_form.option_c.label_tag }}<div class="mt-2">{{ course_form.option_c }}</div></div>
+                        </div>
+                        <button type="submit" class="w-full rounded-lg bg-emerald-600 px-4 py-3 font-black text-white hover:bg-emerald-700">Publicar curso</button>
+                    </form>
+                </div>
+
+                <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                    <h2 class="text-2xl font-black text-slate-950">Cursos disponibles</h2>
+                    <div class="mt-4 grid gap-3">
+                        {% for course in courses %}
+                            <div class="rounded-lg bg-slate-50 p-4">
+                                <p class="font-black text-slate-950">{{ course.title }}</p>
+                                <p class="mt-1 text-sm text-slate-600">{{ course.description|truncatechars:110 }}</p>
+                            </div>
+                        {% empty %}
+                            <p class="text-slate-500">Sin cursos creados.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+        {% else %}
+            <section class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+                <p class="text-sm font-black uppercase tracking-wide text-slate-500">Cursos deshabilitados</p>
+                <h2 class="mt-2 text-2xl font-black text-slate-950">Plan Basico sin academia</h2>
+                <p class="mt-3 text-slate-600">Este prototipo muestra tareas, evidencias, empleados, feedback y proveedores. La creacion de cursos y cuestionarios se reserva para Premium.</p>
+                <a href="{% url 'admin_dashboard' 'premium' %}" class="mt-5 inline-flex rounded-lg bg-emerald-600 px-4 py-3 text-sm font-black text-white hover:bg-emerald-700">Activar Premium</a>
+            </section>
+        {% endif %}
+
+        <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm font-black uppercase tracking-wide text-emerald-700">Usuarios y cursos</p>
+                    <h2 class="text-lg font-black text-slate-950">Resultados de capacitacion</h2>
+                </div>
             </div>
+            {% if plan.has_courses %}
+                <div class="mt-4 overflow-hidden rounded-lg border border-slate-200">
+                    <table class="min-w-full divide-y divide-slate-200 text-sm">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-black uppercase tracking-wide text-slate-500">Usuario</th>
+                                <th class="px-4 py-3 text-left font-black uppercase tracking-wide text-slate-500">Curso</th>
+                                <th class="px-4 py-3 text-left font-black uppercase tracking-wide text-slate-500">Score</th>
+                                <th class="px-4 py-3 text-left font-black uppercase tracking-wide text-slate-500">Estado</th>
+                                <th class="px-4 py-3 text-left font-black uppercase tracking-wide text-slate-500">Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            {% for attempt in course_attempts %}
+                                <tr>
+                                    <td class="px-4 py-3 font-black text-slate-950">{{ attempt.employee_name }}</td>
+                                    <td class="px-4 py-3 text-slate-600">{{ attempt.course.title }}</td>
+                                    <td class="px-4 py-3 font-black text-slate-950">{{ attempt.score }}%</td>
+                                    <td class="px-4 py-3">
+                                        <span class="rounded-full px-3 py-1 text-xs font-black {% if attempt.passed %}bg-emerald-100 text-emerald-800{% else %}bg-rose-100 text-rose-800{% endif %}">
+                                            {% if attempt.passed %}Aprobo{% else %}No aprobo{% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 text-slate-500">{{ attempt.created_at|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5" class="px-4 py-8 text-center text-slate-500">Aun no hay empleados evaluados.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="mt-3 text-slate-500">No disponible en Plan Basico.</p>
+            {% endif %}
         </section>
     </div>
 </section>
+
+<script>
+    (() => {
+        const tabs = Array.from(document.querySelectorAll('.dashboard-tab'));
+        const panels = Array.from(document.querySelectorAll('.dashboard-panel'));
+
+        function activateTab(targetId) {
+            panels.forEach((panel) => {
+                panel.classList.toggle('hidden', panel.id !== targetId);
+            });
+
+            tabs.forEach((tab) => {
+                const isActive = tab.dataset.tabTarget === targetId;
+                tab.classList.toggle('border-emerald-700', isActive);
+                tab.classList.toggle('text-emerald-800', isActive);
+                tab.classList.toggle('border-transparent', !isActive);
+                tab.classList.toggle('text-slate-600', !isActive);
+            });
+        }
+
+        tabs.forEach((tab) => {
+            tab.addEventListener('click', () => activateTab(tab.dataset.tabTarget));
+        });
+    })();
+</script>
 {% endblock content %}

@@ -166,6 +166,15 @@ class SanitationTask(models.Model):
         return self.title
 
 
+class TaskEvidencePhoto(models.Model):
+    task = models.ForeignKey(SanitationTask, on_delete=models.CASCADE, related_name='evidence_photos')
+    image = models.FileField(upload_to='task_evidence/photos/')
+    uploaded_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f'Evidencia - {self.task.title}'
+
+
 class PestControlProvider(models.Model):
     name = models.CharField(max_length=140)
     phone = models.CharField(max_length=40)

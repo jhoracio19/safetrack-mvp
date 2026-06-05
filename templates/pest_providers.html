@@ -1,5 +1,13 @@
 {% extends 'base.html' %}
 
+{% block nav_links %}
+    <a href="{% url 'admin_dashboard' plan.slug %}" class="px-3 py-3 text-center text-sm font-black text-slate-600 hover:text-slate-950 whitespace-nowrap">Resumen</a>
+    <a href="{% url 'admin_dashboard' plan.slug %}#operacion" class="px-3 py-3 text-center text-sm font-black text-slate-600 hover:text-slate-950 whitespace-nowrap">Operación Diaria</a>
+    <a href="{% url 'admin_dashboard' plan.slug %}#equipo" class="px-3 py-3 text-center text-sm font-black text-slate-600 hover:text-slate-950 whitespace-nowrap">Equipo</a>
+    <a href="{% url 'admin_dashboard' plan.slug %}#academia" class="px-3 py-3 text-center text-sm font-black text-slate-600 hover:text-slate-950 whitespace-nowrap">Academia (Premium)</a>
+    <a href="/jefe/fumigadores/" class="border-b-2 border-emerald-700 px-3 py-3 text-center text-sm font-black text-emerald-800 whitespace-nowrap">Fumigadores</a>
+{% endblock nav_links %}
+
 {% block content %}
 <section class="space-y-6">
     <div class="grid gap-6 lg:grid-cols-[1fr_0.9fr]">

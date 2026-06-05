@@ -1,9 +1,13 @@
+import csv
 from datetime import timedelta
 
 from django.core.mail import send_mail
+from django.db.models import Count, Q
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import urlencode
 
 from .forms import CourseCreationForm, CustomerFeedbackForm, EmployeeForm, InspectionForm, TaskCompletionForm
 from .models import (
@@ -15,6 +19,7 @@ from .models import (
     QuizQuestion,
     SanitationTask,
     SubscriptionPlan,
+    TaskEvidencePhoto,
     TrainingCourse,
     TrainingLesson,
 )
@@ -245,10 +250,44 @@ def notify_director(inspection):
     )
 
 
-def landing(request):
+def landing_page(request):
+    get_subscription_plans()
+    plans = SubscriptionPlan.objects.all().order_by('monthly_price')
+    return render(request, 'landing.html', {
+        'plans': plans,
+        'role': 'public',
+    })
+
+
+def login_view(request):
+    commerce = get_demo_commerce()
+    employees = Employee.objects.filter(commerce=commerce, is_active=True).order_by('name')
+
+    if request.method == 'POST':
+        selected_role = request.POST.get('role')
+        request.session['role'] = selected_role
+        if selected_role == 'admin':
+            request.session.pop('employee_name', None)
+            return redirect('admin_dashboard', plan_slug='premium')
+        if selected_role == 'employee':
+            employee_name = request.POST.get('employee_name', '').strip()
+            if employee_name:
+                request.session['employee_name'] = employee_name
+                return redirect(f'{reverse("employee_view")}?{urlencode({"responsable": employee_name})}')
+
+    return render(request, 'login.html', {
+        'role': 'public',
+        'employees': employees,
+    })
+
+
+def role_select(request, plan_slug):
     get_demo_commerce()
-    plans = get_subscription_plans()
-    return render(request, 'landing.html', {'plans': plans})
+    plan = get_plan_or_default(plan_slug)
+    return render(request, 'role_select.html', {
+        'plan': plan,
+        'role': 'public',
+    })
 
 
 def admin_dashboard(request, plan_slug='premium'):
@@ -265,11 +304,38 @@ def admin_dashboard(request, plan_slug='premium'):
                 employee.save()
             return redirect(f'{reverse("admin_dashboard", args=[plan.slug])}?employees=1')
 
+        if action == 'add_task':
+            title = request.POST.get('title', '').strip()
+            instructions = request.POST.get('instructions', '').strip()
+            assigned_to = request.POST.get('assigned_to', '').strip()
+            if title and instructions and assigned_to:
+                SanitationTask.objects.create(
+                    commerce_id=1,
+                    title=title,
+                    instructions=instructions,
+                    assigned_to=assigned_to,
+                    due_date=timezone.localdate(),
+                )
+            return redirect(f'{reverse("admin_dashboard", args=[plan.slug])}?task=1')
+
         if action == 'delete_employee':
             Employee.objects.filter(
                 id=request.POST.get('employee_id'),
                 commerce=commerce,
             ).delete()
+            return redirect(f'{reverse("admin_dashboard", args=[plan.slug])}?employees=1')
+
+        if action == 'update_employee':
+            employee = Employee.objects.filter(
+                id=request.POST.get('employee_id'),
+                commerce=commerce,
+            ).first()
+            if employee:
+                employee.name = request.POST.get('name', '').strip() or employee.name
+                employee.role = request.POST.get('role', '').strip() or employee.role
+                employee.area = request.POST.get('area', '').strip() or employee.area
+                employee.is_active = request.POST.get('is_active') == 'on'
+                employee.save(update_fields=['name', 'role', 'area', 'is_active'])
             return redirect(f'{reverse("admin_dashboard", args=[plan.slug])}?employees=1')
 
         if action == 'add_course':
@@ -321,6 +387,12 @@ def admin_dashboard(request, plan_slug='premium'):
     latest_inspection = commerce.inspections.order_by('-created_at').first()
     latest_percentage = latest_inspection.get_score_percentage() if latest_inspection else None
     sanitary_badges = latest_inspection.sanitary_badges() if latest_inspection else []
+    task_queryset = SanitationTask.objects.filter(commerce=commerce)
+    task_metrics = task_queryset.aggregate(
+        total_pendientes=Count('id', filter=Q(completed_at__isnull=True)),
+        total_en_revision=Count('id', filter=Q(completed_at__isnull=False, approved__isnull=True)),
+        total_aprobadas=Count('id', filter=Q(approved=True)),
+    )
 
     if commerce.certificate_expiration:
         certificate_expiring = commerce.certificate_expiration <= today + timedelta(days=30)
@@ -328,11 +400,16 @@ def admin_dashboard(request, plan_slug='premium'):
     context = {
         'commerce': commerce,
         'plan': plan,
+        'role': 'admin',
         'certificate_expiring': certificate_expiring,
         'latest_inspection': latest_inspection,
         'latest_percentage': latest_percentage,
         'badge': get_badge_level(latest_percentage),
         'sanitary_badges': sanitary_badges,
+        'total_actividades': task_queryset.count(),
+        'total_pendientes': task_metrics['total_pendientes'],
+        'total_en_revision': task_metrics['total_en_revision'],
+        'total_aprobadas': task_metrics['total_aprobadas'],
         'inspections': commerce.inspections.order_by('-created_at')[:10],
         'tasks': commerce.tasks.order_by('-completed_at', 'due_date')[:10],
         'course_attempts': commerce.course_attempts.order_by('-created_at')[:8],
@@ -344,14 +421,124 @@ def admin_dashboard(request, plan_slug='premium'):
         'feedbacks': commerce.feedbacks.order_by('-created_at')[:10],
         'feedback_saved': request.GET.get('feedback') == '1',
         'employees_saved': request.GET.get('employees') == '1',
+        'task_saved': request.GET.get('task') == '1',
         'course_saved': request.GET.get('course') == '1',
         'locked_feature': request.GET.get('locked') == '1',
     }
     return render(request, 'dashboard.html', context)
 
 
+def export_admin_report(request):
+    commerce = get_demo_commerce()
+    today = timezone.localdate()
+    filename = f'safetrack-reporte-{today:%Y-%m-%d}.csv'
+    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response)
+    writer.writerow(['SafeTrack - Reporte general'])
+    writer.writerow(['Comercio', commerce.name])
+    writer.writerow(['Direccion', commerce.address])
+    writer.writerow(['Fecha de exportacion', timezone.localtime(timezone.now()).strftime('%Y-%m-%d %H:%M')])
+    writer.writerow([])
+
+    writer.writerow(['ACTIVIDADES SANITARIAS'])
+    writer.writerow([
+        'ID',
+        'Titulo',
+        'Responsable',
+        'Instrucciones',
+        'Estado',
+        'Fecha limite',
+        'Completada en',
+        'Aprobada',
+        'Fotos evidencia',
+        'Notas empleado',
+        'Feedback jefe',
+    ])
+    for task in commerce.tasks.order_by('-completed_at', 'due_date', 'assigned_to'):
+        if task.approved is True:
+            status = 'Aprobada'
+        elif task.approved is False:
+            status = 'No aprobada'
+        elif task.completed_at:
+            status = 'En revision'
+        else:
+            status = 'Pendiente'
+        writer.writerow([
+            task.id,
+            task.title,
+            task.assigned_to,
+            task.instructions,
+            status,
+            task.due_date or '',
+            timezone.localtime(task.completed_at).strftime('%Y-%m-%d %H:%M') if task.completed_at else '',
+            'Si' if task.approved is True else 'No' if task.approved is False else 'Pendiente',
+            task.evidence_photos.count(),
+            task.employee_notes,
+            task.manager_feedback,
+        ])
+    writer.writerow([])
+
+    writer.writerow(['INSPECCIONES'])
+    writer.writerow([
+        'ID',
+        'Responsable',
+        'Fecha',
+        'Indice sanitario',
+        'Superficies limpias',
+        'Temperatura correcta',
+        'Control de plagas',
+        'Basura sellada',
+        'Lavado de manos',
+        'Feedback directivo',
+    ])
+    for inspection in commerce.inspections.order_by('-created_at'):
+        writer.writerow([
+            inspection.id,
+            inspection.inspector_name,
+            timezone.localtime(inspection.created_at).strftime('%Y-%m-%d %H:%M'),
+            f'{inspection.get_score_percentage():.0f}%',
+            'Si' if inspection.surfaces_clean else 'No',
+            'Si' if inspection.temp_correct else 'No',
+            'Si' if inspection.pest_traps_ok else 'No',
+            'Si' if inspection.trash_sealed else 'No',
+            'Si' if inspection.hands_washed else 'No',
+            inspection.director_feedback,
+        ])
+    writer.writerow([])
+
+    writer.writerow(['RESULTADOS DE CAPACITACION'])
+    writer.writerow(['ID', 'Usuario', 'Curso', 'Score', 'Aprobo', 'Fecha'])
+    for attempt in commerce.course_attempts.select_related('course').order_by('-created_at'):
+        writer.writerow([
+            attempt.id,
+            attempt.employee_name,
+            attempt.course.title,
+            f'{attempt.score}%',
+            'Si' if attempt.passed else 'No',
+            timezone.localtime(attempt.created_at).strftime('%Y-%m-%d %H:%M'),
+        ])
+    writer.writerow([])
+
+    writer.writerow(['FEEDBACK DE CLIENTES'])
+    writer.writerow(['ID', 'Fecha', 'Calificacion', 'Comentario'])
+    for feedback in commerce.feedbacks.order_by('-created_at'):
+        writer.writerow([
+            feedback.id,
+            timezone.localtime(feedback.created_at).strftime('%Y-%m-%d %H:%M'),
+            feedback.score,
+            feedback.comment,
+        ])
+
+    return response
+
+
 def employee_view(request):
     commerce = get_demo_commerce()
+    employees = Employee.objects.filter(commerce=commerce, is_active=True).order_by('name')
+    selected_employee = request.GET.get('responsable', '').strip() or request.session.get('employee_name', '')
 
     if request.method == 'POST':
         form = InspectionForm(request.POST, request.FILES)
@@ -359,10 +546,33 @@ def employee_view(request):
             inspection = form.save(commit=False)
             inspection.commerce = commerce
             inspection.save()
+            request.session['employee_name'] = inspection.inspector_name
             notify_director(inspection)
-            return redirect(f'{reverse("employee_view")}?success=1')
+            redirect_url = f'{reverse("employee_view")}?success=1'
+            if inspection.inspector_name:
+                redirect_url += f'&{urlencode({"responsable": inspection.inspector_name})}'
+            return redirect(redirect_url)
     else:
         form = InspectionForm()
+
+    employee_tasks = SanitationTask.objects.none()
+    employee_inspections = Inspection.objects.none()
+    employee_task_metrics = {
+        'assigned': 0,
+        'pending': 0,
+        'in_review': 0,
+        'approved': 0,
+    }
+    if selected_employee:
+        employee_tasks = commerce.tasks.filter(assigned_to=selected_employee).order_by('completed_at', 'due_date')[:6]
+        employee_inspections = commerce.inspections.filter(inspector_name=selected_employee).order_by('-created_at')[:5]
+        employee_task_queryset = commerce.tasks.filter(assigned_to=selected_employee)
+        employee_task_metrics = {
+            'assigned': employee_task_queryset.count(),
+            'pending': employee_task_queryset.filter(completed_at__isnull=True).count(),
+            'in_review': employee_task_queryset.filter(completed_at__isnull=False, approved__isnull=True).count(),
+            'approved': employee_task_queryset.filter(approved=True).count(),
+        }
 
     checklist_fields = [
         form['surfaces_clean'],
@@ -373,7 +583,13 @@ def employee_view(request):
     ]
     return render(request, 'employee.html', {
         'commerce': commerce,
+        'role': 'employee',
         'form': form,
+        'employees': employees,
+        'selected_employee': selected_employee,
+        'employee_tasks': employee_tasks,
+        'employee_inspections': employee_inspections,
+        'employee_task_metrics': employee_task_metrics,
         'checklist_fields': checklist_fields,
         'success': request.GET.get('success') == '1',
     })
@@ -398,6 +614,7 @@ def customer_view(request):
 
     return render(request, 'customer.html', {
         'commerce': commerce,
+        'role': 'customer',
         'form': form,
         'latest_inspection': latest_inspection,
         'sanitation_percentage': sanitation_percentage,
@@ -410,11 +627,16 @@ def customer_view(request):
 def employee_courses(request):
     commerce = get_demo_commerce()
     courses = TrainingCourse.objects.filter(is_active=True).prefetch_related('lessons', 'questions')
-    attempts = commerce.course_attempts.order_by('-created_at')[:8]
+    selected_employee = request.session.get('employee_name', '')
+    attempts = commerce.course_attempts.order_by('-created_at')
+    if selected_employee:
+        attempts = attempts.filter(employee_name=selected_employee)
     return render(request, 'employee_courses.html', {
         'commerce': commerce,
+        'role': 'employee',
+        'selected_employee': selected_employee,
         'courses': courses,
-        'attempts': attempts,
+        'attempts': attempts[:8],
     })
 
 
@@ -426,9 +648,11 @@ def employee_course_detail(request, course_id):
         is_active=True,
     )
     result = None
+    selected_employee = request.session.get('employee_name', '').strip()
 
     if request.method == 'POST':
-        employee_name = request.POST.get('employee_name', '').strip() or 'Empleado demo'
+        employee_name = request.POST.get('employee_name', '').strip() or selected_employee or 'Empleado demo'
+        request.session['employee_name'] = employee_name
         questions = list(course.questions.all())
         correct = 0
         for question in questions:
@@ -445,28 +669,57 @@ def employee_course_detail(request, course_id):
 
     return render(request, 'employee_course_detail.html', {
         'commerce': commerce,
+        'role': 'employee',
         'course': course,
         'result': result,
+        'selected_employee': employee_name if result else selected_employee,
     })
 
 
 def employee_tasks(request):
     commerce = get_demo_commerce()
+    employees = Employee.objects.filter(commerce=commerce, is_active=True).order_by('name')
+    selected_employee = request.GET.get('responsable', '').strip() or request.session.get('employee_name', '')
 
     if request.method == 'POST':
-        task = get_object_or_404(SanitationTask, id=request.POST.get('task_id'), commerce=commerce)
+        selected_employee = request.POST.get('responsable', '').strip() or request.session.get('employee_name', '')
+        if selected_employee:
+            request.session['employee_name'] = selected_employee
+        task_filters = {
+            'id': request.POST.get('task_id'),
+            'commerce': commerce,
+        }
+        if selected_employee:
+            task_filters['assigned_to'] = selected_employee
+        task = get_object_or_404(SanitationTask, **task_filters)
         form = TaskCompletionForm(request.POST, request.FILES, instance=task)
         if form.is_valid():
             completed_task = form.save(commit=False)
+            uploaded_photos = request.FILES.getlist('evidence_photos')
+            if uploaded_photos and not completed_task.evidence:
+                completed_task.evidence = uploaded_photos[0]
             completed_task.completed_at = timezone.now()
             completed_task.approved = None
             completed_task.reviewed_at = None
             completed_task.save()
-            return redirect(f'{reverse("employee_tasks")}?success=1')
+            for photo in uploaded_photos:
+                TaskEvidencePhoto.objects.create(task=completed_task, image=photo)
+            redirect_url = f'{reverse("employee_tasks")}?success=1'
+            if selected_employee:
+                redirect_url += f'&{urlencode({"responsable": selected_employee})}'
+            return redirect(redirect_url)
+
+    tasks = SanitationTask.objects.none()
+    if selected_employee:
+        tasks = commerce.tasks.filter(assigned_to=selected_employee).order_by('completed_at', 'due_date')
 
     return render(request, 'employee_tasks.html', {
         'commerce': commerce,
-        'tasks': commerce.tasks.order_by('completed_at', 'due_date'),
+        'role': 'employee',
+        'employees': employees,
+        'selected_employee': selected_employee,
+        'tasks': tasks,
+        'has_manager_feedback': tasks.exclude(manager_feedback='').exists(),
         'form': TaskCompletionForm(),
         'success': request.GET.get('success') == '1',
     })
@@ -474,8 +727,11 @@ def employee_tasks(request):
 
 def pest_providers(request):
     get_demo_commerce()
+    plan = get_plan_or_default('premium')
     providers = PestControlProvider.objects.order_by('-certified', 'price_level', 'name')
     return render(request, 'pest_providers.html', {
+        'role': 'admin',
+        'plan': plan,
         'providers': providers,
         'certified_count': providers.filter(certified=True).count(),
         'uncertified_count': providers.filter(certified=False).count(),
