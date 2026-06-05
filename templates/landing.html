@@ -1,67 +1,140 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<section class="space-y-10">
-    <div class="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-        <div>
-            <p class="text-sm font-black uppercase tracking-wide text-emerald-700">SafeTrack para alimentos</p>
-            <h1 class="mt-3 text-5xl font-black leading-tight text-slate-950">Cultura sanitaria rentable para restaurantes, cocinas y comercios de alimentos</h1>
-            <p class="mt-5 text-lg leading-8 text-slate-600">
-                Centraliza tareas sanitarias, evidencias fotograficas, feedback de jefes, proveedores de fumigacion, vista publica para clientes y capacitacion interna segun tu plan.
+<div class="space-y-24 py-10">
+    <!-- Hero / Info Section -->
+    <section id="info" class="grid gap-12 lg:grid-cols-2 lg:items-center">
+        <div class="space-y-6">
+            <span class="inline-block rounded-full bg-emerald-100 px-4 py-1.5 text-sm font-bold text-emerald-800">
+                Gestión Sanitaria Inteligente
+            </span>
+            <h1 class="text-5xl font-black leading-tight text-slate-950 lg:text-6xl">
+                La plataforma definitiva para la inocuidad alimentaria
+            </h1>
+            <p class="text-xl leading-relaxed text-slate-600">
+                SafeTrack digitaliza el cumplimiento de normas de salubridad para restaurantes y servicios de comida. Sustituye las bitácoras de papel por evidencias fotográficas, capacitación en tiempo real y badges de confianza para tus clientes.
             </p>
-            <div class="mt-6 flex flex-wrap gap-3">
-                <a href="#precios" class="rounded-lg bg-slate-950 px-5 py-3 font-black text-white hover:bg-slate-800">Ver planes</a>
-                <a href="{% url 'customer_view' %}" class="rounded-lg border border-slate-300 bg-white px-5 py-3 font-black text-slate-800 hover:bg-slate-50">Vista cliente</a>
+            <div class="flex flex-wrap gap-4">
+                <a href="#precios" class="rounded-xl bg-slate-950 px-8 py-4 font-black text-white transition-all hover:bg-slate-800 hover:shadow-lg">
+                    Ver planes y precios
+                </a>
+                <a href="{% url 'customer_view' %}" class="rounded-xl border-2 border-slate-200 bg-white px-8 py-4 font-black text-slate-800 transition-all hover:bg-slate-50">
+                    Demo Vista Cliente
+                </a>
             </div>
         </div>
-        <div class="rounded-lg bg-slate-950 p-6 text-white shadow-xl">
-            <p class="text-sm font-black uppercase tracking-wide text-emerald-300">Que resuelve</p>
-            <div class="mt-5 grid gap-3">
-                <div class="rounded-lg bg-white/10 p-4">
-                    <p class="font-black">Empleados</p>
-                    <p class="mt-1 text-sm text-slate-300">Tareas con foto, checklist tipo swipe y cursos en Premium.</p>
-                </div>
-                <div class="rounded-lg bg-white/10 p-4">
-                    <p class="font-black">Jefes</p>
-                    <p class="mt-1 text-sm text-slate-300">Alta y baja de empleados, feedback por tarea y control de cumplimiento.</p>
-                </div>
-                <div class="rounded-lg bg-white/10 p-4">
-                    <p class="font-black">Clientes</p>
-                    <p class="mt-1 text-sm text-slate-300">Indices publicos y emblemas por norma sanitaria cumplida.</p>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <section id="precios" class="space-y-5">
-        <div class="text-center">
-            <p class="text-sm font-black uppercase tracking-wide text-emerald-700">Planes del prototipo</p>
-            <h2 class="mt-2 text-4xl font-black text-slate-950">Elige una experiencia para mostrar</h2>
-        </div>
-        <div class="grid gap-5 lg:grid-cols-2">
-            {% for plan in plans %}
-                <article class="rounded-lg border bg-white p-6 shadow-sm {% if plan.highlighted %}border-emerald-300 ring-4 ring-emerald-100{% else %}border-slate-200{% endif %}">
-                    {% if plan.highlighted %}
-                        <p class="mb-4 inline-flex rounded-full bg-emerald-100 px-3 py-1 text-sm font-black text-emerald-800">Recomendado</p>
-                    {% endif %}
-                    <h3 class="text-3xl font-black text-slate-950">{{ plan.name }}</h3>
-                    <p class="mt-2 text-slate-600">{{ plan.description }}</p>
-                    <p class="mt-5 text-5xl font-black text-slate-950">${{ plan.monthly_price }}<span class="text-base font-bold text-slate-500">/mes</span></p>
-                    <div class="mt-6 grid gap-3 text-sm font-bold text-slate-700">
-                        <p class="rounded-lg bg-slate-50 px-4 py-3">Tareas con evidencia fotografica</p>
-                        <p class="rounded-lg bg-slate-50 px-4 py-3">Feedback del jefe por tarea</p>
-                        <p class="rounded-lg bg-slate-50 px-4 py-3">Directorio de fumigadores</p>
-                        <p class="rounded-lg px-4 py-3 {% if plan.has_courses %}bg-emerald-50 text-emerald-800{% else %}bg-slate-100 text-slate-400{% endif %}">
-                            {% if plan.has_courses %}Cursos y cuestionarios habilitados{% else %}Cursos no incluidos{% endif %}
-                        </p>
-                        <p class="rounded-lg bg-slate-50 px-4 py-3">Hasta {{ plan.max_employees }} empleados demo</p>
+        <div class="relative">
+            <div class="absolute -inset-4 rounded-3xl bg-emerald-100/50 blur-2xl"></div>
+            <div class="relative rounded-2xl border border-slate-200 bg-white p-8 shadow-2xl">
+                <div class="space-y-6">
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <div>
+                            <h3 class="font-black text-slate-900">Control de Bitácoras</h3>
+                            <p class="text-sm text-slate-600">Checklists diarios de limpieza y temperaturas con fotos obligatorias.</p>
+                        </div>
                     </div>
-                    <a href="{% url 'admin_dashboard' plan.slug %}" class="mt-6 inline-flex w-full justify-center rounded-lg {% if plan.highlighted %}bg-emerald-600 hover:bg-emerald-700{% else %}bg-slate-950 hover:bg-slate-800{% endif %} px-5 py-4 font-black text-white">
-                        Entrar a {{ plan.name }}
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                        </div>
+                        <div>
+                            <h3 class="font-black text-slate-900">Academia de Inocuidad</h3>
+                            <p class="text-sm text-slate-600">Capacitación constante para el personal con evaluaciones automáticas.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                        </div>
+                        <div>
+                            <h3 class="font-black text-slate-900">Certificación Pública</h3>
+                            <p class="text-sm text-slate-600">Muestra a tus clientes que tu cocina es segura con indices de cumplimiento.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Plans Section -->
+    <section id="precios" class="space-y-12">
+        <div class="mx-auto max-w-3xl text-center">
+            <h2 class="text-4xl font-black text-slate-950">Planes adaptados a tu negocio</h2>
+            <p class="mt-4 text-lg text-slate-600">
+                Elige la experiencia que deseas probar. El Plan Premium incluye el módulo completo de cursos y capacitación, mientras que el Plan Básico se enfoca en la operación diaria.
+            </p>
+        </div>
+
+        <div class="grid gap-8 lg:grid-cols-2">
+            {% for plan in plans %}
+                <article class="flex flex-col rounded-3xl border-2 bg-white p-8 transition-all hover:shadow-2xl {% if plan.highlighted %}border-emerald-500 ring-8 ring-emerald-50{% else %}border-slate-200{% endif %}">
+                    {% if plan.highlighted %}
+                        <div class="mb-4">
+                            <span class="rounded-full bg-emerald-100 px-4 py-1 text-sm font-black text-emerald-800">EXPERIENCIA COMPLETA</span>
+                        </div>
+                    {% endif %}
+                    
+                    <h3 class="text-3xl font-black text-slate-950">{{ plan.name }}</h3>
+                    <p class="mt-4 flex-grow text-slate-600 leading-relaxed">{{ plan.description }}</p>
+                    
+                    <div class="mt-8 border-t border-slate-100 pt-8">
+                        <p class="text-5xl font-black text-slate-950">${{ plan.monthly_price }}<span class="text-lg font-bold text-slate-400">/mes</span></p>
+                    </div>
+
+                    <ul class="mt-8 space-y-4">
+                        <li class="flex items-center gap-3 font-bold text-slate-700">
+                            <svg class="h-5 w-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Bitácoras sanitarias digitales
+                        </li>
+                        <li class="flex items-center gap-3 font-bold text-slate-700">
+                            <svg class="h-5 w-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Control de plagas y proveedores
+                        </li>
+                        <li class="flex items-center gap-3 font-bold {% if plan.has_courses %}text-slate-700{% else %}text-slate-300 line-through{% endif %}">
+                            {% if plan.has_courses %}
+                                <svg class="h-5 w-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            {% else %}
+                                <svg class="h-5 w-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            {% endif %}
+                            Módulo de Cursos y Evaluaciones
+                        </li>
+                        <li class="flex items-center gap-3 font-bold text-slate-700">
+                            <svg class="h-5 w-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Hasta {{ plan.max_employees }} empleados
+                        </li>
+                    </ul>
+
+                    <a href="{% url 'admin_dashboard' plan.slug %}" class="mt-10 block rounded-xl {% if plan.highlighted %}bg-emerald-600 hover:bg-emerald-700{% else %}bg-slate-950 hover:bg-slate-800{% endif %} px-6 py-4 text-center font-black text-white transition-all">
+                        Seleccionar {{ plan.name }}
                     </a>
                 </article>
             {% endfor %}
         </div>
     </section>
-</section>
+
+    <!-- Industry Section -->
+    <section class="rounded-3xl bg-slate-950 p-12 text-white">
+        <div class="grid gap-12 lg:grid-cols-3">
+            <div class="space-y-4">
+                <div class="text-3xl font-black text-emerald-400">01</div>
+                <h4 class="text-xl font-black">Restaurantes</h4>
+                <p class="text-slate-400">Control total sobre la cocina, desde la recepción de materia prima hasta el servicio al comensal.</p>
+            </div>
+            <div class="space-y-4">
+                <div class="text-3xl font-black text-emerald-400">02</div>
+                <h4 class="text-xl font-black">Comedores Industriales</h4>
+                <p class="text-slate-400">Estandarización de procesos para grandes volúmenes de producción con trazabilidad absoluta.</p>
+            </div>
+            <div class="space-y-4">
+                <div class="text-3xl font-black text-emerald-400">03</div>
+                <h4 class="text-xl font-black">Dark Kitchens</h4>
+                <p class="text-slate-400">Gestión ágil y digital para negocios enfocados en delivery que requieren máxima eficiencia sanitaria.</p>
+            </div>
+        </div>
+    </section>
+</div>
 {% endblock content %}

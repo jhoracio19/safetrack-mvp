@@ -11,13 +11,8 @@
         <div class="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
             <a href="{% url 'landing' %}" class="text-xl font-bold tracking-tight text-slate-950">SafeTrack</a>
             <div class="flex flex-wrap gap-2 text-sm font-medium">
-                <a href="{% url 'landing' %}" class="rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100">Precios</a>
-                <a href="{% url 'admin_dashboard' 'premium' %}" class="rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100">Admin</a>
-                <a href="{% url 'employee_view' %}" class="rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100">Empleado</a>
-                <a href="{% url 'employee_courses' %}" class="rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100">Cursos</a>
-                <a href="{% url 'employee_tasks' %}" class="rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100">Tareas</a>
-                <a href="{% url 'pest_providers' %}" class="rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100">Fumigadores</a>
-                <a href="{% url 'customer_view' %}" class="rounded-lg bg-slate-900 px-3 py-2 text-white hover:bg-slate-800">Cliente</a>
+                <a href="{% url 'landing' %}#info" class="rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100">Información</a>
+                <a href="{% url 'landing' %}#precios" class="rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100">Planes</a>
             </div>
         </div>
     </nav>
