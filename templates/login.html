@@ -43,13 +43,25 @@
 
                 <label class="cursor-pointer rounded-xl border-2 border-slate-200 bg-white p-5 shadow-sm transition hover:border-emerald-400 hover:bg-emerald-50">
                     <div class="flex items-start gap-4">
-                        <input type="radio" name="role" value="employee" class="mt-1 h-5 w-5 text-emerald-600 focus:ring-emerald-500">
+                        <input type="radio" name="role" value="employee" id="role-employee" class="mt-1 h-5 w-5 text-emerald-600 focus:ring-emerald-500">
                         <div>
                             <p class="text-lg font-black text-slate-950">Soy Empleado Operativo</p>
                             <p class="mt-1 text-sm leading-6 text-slate-600">Entrar al flujo de registro sanitario y tareas del día.</p>
                         </div>
                     </div>
                 </label>
+            </div>
+
+            <div id="employee-selector-container" class="mt-6 hidden">
+                <label for="employee-id" class="block text-sm font-black text-slate-700">Selecciona tu perfil de empleado</label>
+                <select id="employee-id" name="employee_id" class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-4 text-lg font-bold text-slate-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200">
+                    <option value="" disabled selected>Elige tu nombre...</option>
+                    {% for employee in employees %}
+                        <option value="{{ employee.id }}">{{ employee.name }} - {{ employee.role }}</option>
+                    {% empty %}
+                        <option value="" disabled>No hay empleados registrados. Entra como admin primero.</option>
+                    {% endfor %}
+                </select>
             </div>
 
             <button type="submit" class="mt-8 w-full rounded-xl bg-emerald-600 px-5 py-5 text-lg font-black text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200">
@@ -62,4 +74,22 @@
         </form>
     </div>
 </section>
+
+<script>
+    const roleRadios = document.querySelectorAll('input[name="role"]');
+    const employeeContainer = document.getElementById('employee-selector-container');
+    const employeeSelect = document.getElementById('employee-id');
+
+    roleRadios.forEach(radio => {
+        radio.addEventListener('change', () => {
+            if (radio.value === 'employee') {
+                employeeContainer.classList.remove('hidden');
+                employeeSelect.setAttribute('required', 'required');
+            } else {
+                employeeContainer.classList.add('hidden');
+                employeeSelect.removeAttribute('required');
+            }
+        });
+    });
+</script>
 {% endblock content %}

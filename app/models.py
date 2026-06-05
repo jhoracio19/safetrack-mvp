@@ -39,7 +39,8 @@ class Employee(models.Model):
 
 class Inspection(models.Model):
     commerce = models.ForeignKey(Commerce, on_delete=models.CASCADE, related_name='inspections')
-    inspector_name = models.CharField(max_length=100)
+    inspector = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, related_name='inspections')
+    inspector_name = models.CharField(max_length=100, blank=True) # Keep for legacy/manual entries
     created_at = models.DateTimeField(default=timezone.now)
     surfaces_clean = models.BooleanField(default=False)
     temp_correct = models.BooleanField(default=False)
@@ -83,7 +84,8 @@ class Inspection(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.commerce.name} - {self.created_at:%Y-%m-%d}'
+        name = self.inspector.name if self.inspector else self.inspector_name
+        return f'{self.commerce.name} - {name} - {self.created_at:%Y-%m-%d}'
 
 
 class CustomerFeedback(models.Model):
@@ -110,6 +112,7 @@ class TrainingLesson(models.Model):
     course = models.ForeignKey(TrainingCourse, on_delete=models.CASCADE, related_name='lessons')
     title = models.CharField(max_length=140)
     content = models.TextField()
+    video_url = models.URLField(blank=True, null=True, help_text="Link de YouTube o Vimeo")
     order = models.PositiveIntegerField(default=1)
 
     class Meta:
@@ -137,20 +140,33 @@ class QuizQuestion(models.Model):
 class CourseAttempt(models.Model):
     commerce = models.ForeignKey(Commerce, on_delete=models.CASCADE, related_name='course_attempts')
     course = models.ForeignKey(TrainingCourse, on_delete=models.CASCADE, related_name='attempts')
-    employee_name = models.CharField(max_length=100)
+    employee = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, related_name='course_attempts')
+    employee_name = models.CharField(max_length=100, blank=True) # Keep for legacy
     score = models.PositiveIntegerField()
     passed = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return f'{self.employee_name} - {self.course.title} ({self.score}%)'
+        name = self.employee.name if self.employee else self.employee_name
+        return f'{name} - {self.course.title} ({self.score}%)'
 
 
 class SanitationTask(models.Model):
     commerce = models.ForeignKey(Commerce, on_delete=models.CASCADE, related_name='tasks')
     title = models.CharField(max_length=140)
     instructions = models.TextField()
-    assigned_to = models.CharField(max_length=100)
+    assigned_to_employee = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, related_name='tasks')
+    assigned_to = models.CharField(max_length=100, blank=True) # Keep for legacy
+    frequency = models.CharField(
+        max_length=20,
+        choices=[
+            ('once', 'Una vez'),
+            ('daily', 'Diario'),
+            ('weekly', 'Semanal'),
+            ('monthly', 'Mensual'),
+        ],
+        default='once',
+    )
     due_date = models.DateField(null=True, blank=True)
     employee_notes = models.TextField(blank=True)
     evidence = models.FileField(upload_to='task_evidence/', null=True, blank=True)
@@ -161,6 +177,9 @@ class SanitationTask(models.Model):
 
     def is_completed(self):
         return self.completed_at is not None
+
+    def is_overdue(self):
+        return not self.completed_at and self.due_date and self.due_date < timezone.localdate()
 
     def __str__(self):
         return self.title

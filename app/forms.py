@@ -13,7 +13,7 @@ class InspectionForm(forms.ModelForm):
     class Meta:
         model = Inspection
         fields = [
-            'inspector_name',
+            'inspector',
             'surfaces_clean',
             'temp_correct',
             'pest_traps_ok',
@@ -22,7 +22,7 @@ class InspectionForm(forms.ModelForm):
             'evidence',
         ]
         labels = {
-            'inspector_name': 'Nombre del responsable',
+            'inspector': 'Nombre del responsable',
             'surfaces_clean': 'Superficies limpias',
             'temp_correct': 'Temperatura correcta',
             'pest_traps_ok': 'Trampas de plagas en buen estado',
@@ -31,13 +31,12 @@ class InspectionForm(forms.ModelForm):
             'evidence': 'Evidencia fotografica',
         }
         widgets = {
-            'inspector_name': forms.TextInput(attrs={
+            'inspector': forms.Select(attrs={
                 'class': (
                     'w-full rounded-lg border border-slate-300 bg-white px-4 py-3 '
                     'text-base text-slate-900 shadow-sm focus:border-emerald-500 '
                     'focus:outline-none focus:ring-2 focus:ring-emerald-200'
                 ),
-                'placeholder': 'Ej. Ana Martinez',
             }),
             'surfaces_clean': forms.CheckboxInput(attrs={'class': CHECKBOX_CLASSES}),
             'temp_correct': forms.CheckboxInput(attrs={'class': CHECKBOX_CLASSES}),
@@ -54,6 +53,12 @@ class InspectionForm(forms.ModelForm):
                 'accept': 'image/*',
             }),
         }
+
+    def __init__(self, *args, **kwargs):
+        commerce = kwargs.pop('commerce', None)
+        super().__init__(*args, **kwargs)
+        if commerce:
+            self.fields['inspector'].queryset = commerce.employees.filter(is_active=True)
 
 
 class CustomerFeedbackForm(forms.ModelForm):
@@ -167,6 +172,14 @@ class CourseCreationForm(forms.Form):
         label='Titulo de la leccion',
         widget=forms.TextInput(attrs={
             'class': 'w-full rounded-lg border border-slate-300 px-4 py-3 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200',
+        }),
+    )
+    video_url = forms.URLField(
+        label='URL del Video (YouTube/Vimeo)',
+        required=False,
+        widget=forms.URLInput(attrs={
+            'class': 'w-full rounded-lg border border-slate-300 px-4 py-3 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200',
+            'placeholder': 'Ej. https://www.youtube.com/watch?v=...',
         }),
     )
     lesson_content = forms.CharField(

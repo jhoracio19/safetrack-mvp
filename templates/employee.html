@@ -78,16 +78,11 @@
 
                 <div class="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
                     <div>
-                        <label for="{{ form.inspector_name.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">
-                            {{ form.inspector_name.label }}
+                        <label for="{{ form.inspector.id_for_label }}" class="mb-2 block text-sm font-bold text-slate-700">
+                            {{ form.inspector.label }}
                         </label>
-                        <select name="inspector_name" id="{{ form.inspector_name.id_for_label }}" required class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-900 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500">
-                            <option value="" disabled {% if not selected_employee %}selected{% endif %}>Selecciona tu perfil...</option>
-                            {% for emp in employees %}
-                                <option value="{{ emp.name }}" {% if selected_employee == emp.name %}selected{% endif %}>{{ emp.name }} - {{ emp.role }}</option>
-                            {% endfor %}
-                        </select>
-                        {{ form.inspector_name.errors }}
+                        {{ form.inspector }}
+                        {{ form.inspector.errors }}
                     </div>
                     <div class="rounded-lg bg-white px-4 py-3 text-sm font-bold text-slate-600 shadow-sm">
                         {{ commerce.name }}
