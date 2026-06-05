@@ -29,15 +29,26 @@ def get_demo_commerce():
     commerce, _ = Commerce.objects.get_or_create(
         id=1,
         defaults={
-            'name': 'SafeTrack Demo Store',
+            'name': 'EcoTrust Demo Store',
             'address': 'Av. Industria 123, Ciudad de Mexico',
             'certificate_expiration': timezone.localdate() + timedelta(days=20),
-            'director_email': 'directivo@safetrack.local',
+            'director_email': 'directivo@ecotrust.local',
         },
     )
     if not commerce.director_email:
-        commerce.director_email = 'directivo@safetrack.local'
+        commerce.director_email = 'directivo@ecotrust.local'
         commerce.save(update_fields=['director_email'])
+    updates = {}
+    old_brand = 'Safe' + 'Track'
+    old_domain = 'safe' + 'track'
+    if old_brand in commerce.name:
+        updates['name'] = commerce.name.replace(old_brand, 'EcoTrust')
+    if old_domain in commerce.director_email:
+        updates['director_email'] = commerce.director_email.replace(old_domain, 'ecotrust')
+    if updates:
+        for field, value in updates.items():
+            setattr(commerce, field, value)
+        commerce.save(update_fields=list(updates.keys()))
     seed_demo_platform(commerce)
     return commerce
 
@@ -164,7 +175,7 @@ def seed_demo_platform(commerce):
         title='Fotografiar acomodo del refrigerador',
         defaults={
             'instructions': 'Validar que carnes crudas esten abajo, alimentos listos arriba y recipientes cerrados.',
-            'assigned_to': 'Equipo cocina',
+            'assigned_to': 'Mariana Lopez',
             'due_date': timezone.localdate(),
         },
     )
@@ -173,10 +184,20 @@ def seed_demo_platform(commerce):
         title='Evidencia de lavado de verduras',
         defaults={
             'instructions': 'Tomar foto del area de lavado limpia y registrar notas del proceso de desinfeccion.',
-            'assigned_to': 'Preparacion',
+            'assigned_to': 'Luis Hernandez',
             'due_date': timezone.localdate(),
         },
     )
+    SanitationTask.objects.filter(
+        commerce=commerce,
+        title='Fotografiar acomodo del refrigerador',
+        assigned_to='Equipo cocina',
+    ).update(assigned_to='Mariana Lopez')
+    SanitationTask.objects.filter(
+        commerce=commerce,
+        title='Evidencia de lavado de verduras',
+        assigned_to='Preparacion',
+    ).update(assigned_to='Luis Hernandez')
 
     PestControlProvider.objects.get_or_create(
         name='BioControl Certificado MX',
@@ -214,18 +235,18 @@ def get_badge_level(percentage):
         }
     if percentage >= 95:
         return {
-            'name': 'SafeTrack Elite',
+            'name': 'EcoTrust Elite',
             'color': 'emerald',
-            'message': 'Cumplimiento sanitario sobresaliente verificado por SafeTrack.',
+            'message': 'Cumplimiento sanitario sobresaliente verificado por EcoTrust.',
         }
     if percentage >= 80:
         return {
-            'name': 'SafeTrack Confiable',
+            'name': 'EcoTrust Confiable',
             'color': 'amber',
             'message': 'Buenas practicas sanitarias con oportunidades menores de mejora.',
         }
     return {
-        'name': 'SafeTrack En mejora',
+        'name': 'EcoTrust En mejora',
         'color': 'rose',
         'message': 'El comercio requiere acciones correctivas prioritarias.',
     }
@@ -233,7 +254,7 @@ def get_badge_level(percentage):
 
 def notify_director(inspection):
     score = inspection.get_score_percentage()
-    subject = f'SafeTrack: inspeccion registrada ({score:.0f}%)'
+    subject = f'EcoTrust: inspeccion registrada ({score:.0f}%)'
     message = (
         f'Comercio: {inspection.commerce.name}\n'
         f'Responsable: {inspection.inspector_name}\n'
@@ -270,7 +291,10 @@ def login_view(request):
             request.session.pop('employee_name', None)
             return redirect('admin_dashboard', plan_slug='premium')
         if selected_role == 'employee':
-            employee_name = request.POST.get('employee_name', '').strip()
+            employee_name = request.POST.get('employee_name', '').strip() or request.session.get('employee_name', '')
+            if not employee_name:
+                first_employee = employees.first()
+                employee_name = first_employee.name if first_employee else 'Empleado demo'
             if employee_name:
                 request.session['employee_name'] = employee_name
                 return redirect(f'{reverse("employee_view")}?{urlencode({"responsable": employee_name})}')
@@ -331,11 +355,25 @@ def admin_dashboard(request, plan_slug='premium'):
                 commerce=commerce,
             ).first()
             if employee:
+                previous_name = employee.name
                 employee.name = request.POST.get('name', '').strip() or employee.name
                 employee.role = request.POST.get('role', '').strip() or employee.role
                 employee.area = request.POST.get('area', '').strip() or employee.area
                 employee.is_active = request.POST.get('is_active') == 'on'
                 employee.save(update_fields=['name', 'role', 'area', 'is_active'])
+                if previous_name != employee.name:
+                    SanitationTask.objects.filter(
+                        commerce=commerce,
+                        assigned_to=previous_name,
+                    ).update(assigned_to=employee.name)
+                    Inspection.objects.filter(
+                        commerce=commerce,
+                        inspector_name=previous_name,
+                    ).update(inspector_name=employee.name)
+                    CourseAttempt.objects.filter(
+                        commerce=commerce,
+                        employee_name=previous_name,
+                    ).update(employee_name=employee.name)
             return redirect(f'{reverse("admin_dashboard", args=[plan.slug])}?employees=1')
 
         if action == 'add_course':
@@ -431,13 +469,13 @@ def admin_dashboard(request, plan_slug='premium'):
 def export_admin_report(request):
     commerce = get_demo_commerce()
     today = timezone.localdate()
-    filename = f'safetrack-reporte-{today:%Y-%m-%d}.csv'
+    filename = f'ecotrust-reporte-{today:%Y-%m-%d}.csv'
     response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     response.write('\ufeff')
 
     writer = csv.writer(response)
-    writer.writerow(['SafeTrack - Reporte general'])
+    writer.writerow(['EcoTrust - Reporte general'])
     writer.writerow(['Comercio', commerce.name])
     writer.writerow(['Direccion', commerce.address])
     writer.writerow(['Fecha de exportacion', timezone.localtime(timezone.now()).strftime('%Y-%m-%d %H:%M')])

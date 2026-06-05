@@ -123,7 +123,7 @@ MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'SafeTrack MVP <notificaciones@safetrack.local>'
+DEFAULT_FROM_EMAIL = 'EcoTrust MVP <notificaciones@ecotrust.local>'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

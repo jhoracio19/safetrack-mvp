@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='commerce',
             name='director_email',
-            field=models.EmailField(default='directivo@safetrack.local', max_length=254),
+            field=models.EmailField(default='directivo@ecotrust.local', max_length=254),
         ),
         migrations.AddField(
             model_name='inspection',

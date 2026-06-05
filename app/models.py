@@ -6,7 +6,7 @@ class Commerce(models.Model):
     name = models.CharField(max_length=100)
     address = models.CharField(max_length=200)
     certificate_expiration = models.DateField(null=True, blank=True)
-    director_email = models.EmailField(default='directivo@safetrack.local')
+    director_email = models.EmailField(default='directivo@ecotrust.local')
 
     def __str__(self):
         return self.name
